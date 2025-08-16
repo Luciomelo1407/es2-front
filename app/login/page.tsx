@@ -3,24 +3,15 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from "react"
 import { Eye, EyeOff, User, Lock, Heart, Shield, Users } from "lucide-react"
 
-export function MeuComponente() {
+export function ir_admin() {
   const router = useRouter()
   
-  const irParaOutraPagina = () => {
-    router.push('/usuario')
-  }
-  
-  return (
-    <button 
-      onClick={irParaOutraPagina}
-      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-    >
-      Navegar programaticamente
-    </button>
-  )
+  return (router.push('/admin'))
 }
 
 export function CardDemo() {
+  const router = useRouter();
+
   const frases = [
     "Cuidar é salvar vidas.",
     "Saúde é prioridade.",
@@ -75,7 +66,6 @@ export function CardDemo() {
 
   const [frase, setFrase] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({ id: "", password: "" })
   const [errors, setErrors] = useState({ id: "", password: "" })
 
@@ -91,40 +81,48 @@ export function CardDemo() {
     if (!formData.id.trim()) {
       newErrors.id = "ID é obrigatório"
       isValid = false
-    } else if (formData.id.length < 3) {
-      newErrors.id = "ID deve ter pelo menos 3 caracteres"
-      isValid = false
-    }
+    } 
 
     if (!formData.password) {
       newErrors.password = "Senha é obrigatória"
       isValid = false
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Senha deve ter pelo menos 6 caracteres"
-      isValid = false
-    }
+    } 
 
     setErrors(newErrors)
     return isValid
   }
 
-  const handleSubmit = async () => {    
-    if (!validateForm()) return
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-    setIsLoading(true)
-    
-    // Simula requisição de login
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setIsLoading(false)
-    alert("Login realizado com sucesso! (Demo)")
-  }
+    // validações básicas (opcional)
+    const nextErrors = { id: "", password: "" };
+    if (!formData.id.trim()) nextErrors.id = "ID é obrigatório";
+    if (!formData.password.trim()) nextErrors.password = "Senha é obrigatória";
+    if (nextErrors.id || nextErrors.password) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    // checagem de credenciais
+    if (formData.id === "admin" && formData.password === "admin") {
+      // ✅ navega corretamente usando o hook dentro do componente
+      router.push('/admin');
+    } if(formData.id === "usuario" && formData.password === "usuario"){
+      router.push('/usuario');
+    } else {
+      setErrors({
+        id: formData.id !== "admin" ? "ID incorreto" : "",
+        password: formData.password !== "admin" ? "Senha incorreta" : "",
+      });
+    }
+  };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }))
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   }
 
   return (
@@ -161,7 +159,7 @@ export function CardDemo() {
           <input
             id="id"
             type="text"
-            placeholder="201547"
+            placeholder="admin"
             value={formData.id}
             onChange={(e) => handleInputChange('id', e.target.value)}
             className={`w-full px-3 py-2 border rounded-md transition-all duration-200 focus:outline-none focus:ring-2 ${
@@ -193,7 +191,7 @@ export function CardDemo() {
                   ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
                   : 'border-gray-200 focus:border-emerald-500 focus:ring-emerald-200'
               }`}
-              placeholder="Digite sua senha"
+              placeholder="abc@123"
             />
             <button
               type="button"
@@ -215,21 +213,12 @@ export function CardDemo() {
         </div>
       </div>
 
-      {/* Card Footer */}
+      {/* botoes entrar e cadastrar*/}
       <div className="flex flex-col gap-3 pt-2 p-6">
         <button 
           onClick={handleSubmit}
           className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium py-2.5 rounded-md transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              Entrando...
-            </div>
-          ) : (
-            "Entrar"
-          )}
+        >Entrar 
         </button>
         
         <button 
@@ -252,7 +241,7 @@ export default function Home() {
       <div className="relative h-64 lg:h-auto lg:min-h-screen overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-teal-800/30 z-10"></div>
         <img
-          src="corona-vaccination-health-joint-hand-neck-1640973-pxhere.com.jpg"
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Abertura_da_Campanha_de_Vacina%C3%A7%C3%A3o_contra_Covid-19_em_S%C3%A3o_Jos%C3%A9_dos_Campos_-_50856175627.jpg/960px-Abertura_da_Campanha_de_Vacina%C3%A7%C3%A3o_contra_Covid-19_em_S%C3%A3o_Jos%C3%A9_dos_Campos_-_50856175627.jpg?20210122040450"
           alt="Profissional de saúde aplicando vacina"
           className="w-full h-full object-cover"
         />
@@ -293,9 +282,6 @@ export default function Home() {
         
         <div className="relative z-10">
           <CardDemo />
-          <div className="mt-4">
-            <MeuComponente/>
-          </div>
         </div>
 
       </div>
