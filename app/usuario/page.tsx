@@ -29,12 +29,21 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function VaccineDashboard() {
+  const router = useRouter();
+
   const [selectedAction, setSelectedAction] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleAction = async (action) => {
+  const handleAction = async (action: any) => {
+
+    if(action == "inserir vacina no estoque"){
+      router.push("/usuario/inserir_vacina")
+    }
+
     setIsLoading(true)
     setSelectedAction(action)
     console.log(`Ação selecionada: ${action}`)
