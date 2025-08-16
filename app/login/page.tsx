@@ -219,14 +219,7 @@ export function CardDemo() {
           onClick={handleSubmit}
           className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium py-2.5 rounded-md transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none"
         >Entrar 
-        </button>
-        
-        <button 
-          className="w-full border border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 transition-all duration-200 py-2.5 rounded-md font-medium"
-        >
-          Cadastrar
-        </button>
-        
+        </button>    
       </div>
     </div>
     
