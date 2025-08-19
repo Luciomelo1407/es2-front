@@ -47,7 +47,7 @@ const CadastroEndereco = () => {
     } else {
       // Se não há dados do usuário, redireciona para a tela de cadastro
       alert('Dados do usuário não encontrados. Redirecionando para o cadastro.');
-      router.push('/cadastrar-usuario');
+      router.push('/admin/cadastrar-usuario');
     }
   }, [router]);
 
@@ -149,8 +149,8 @@ const CadastroEndereco = () => {
         
         alert('Usuário cadastrado com sucesso!');
         
-        // Redireciona para o menu principal
-        router.push('/');
+        // Redireciona para o menu principal do admin
+        router.push('/admin');
         
       } catch (error) {
         console.error('Erro ao cadastrar usuário:', error);
@@ -164,7 +164,7 @@ const CadastroEndereco = () => {
    * Preserva os dados já preenchidos para edição
    */
   const handleVoltar = () => {
-    router.push('/cadastrar-usuario');
+    router.push('/admin/cadastrar-usuario');
   };
 
   /**
@@ -224,7 +224,7 @@ const CadastroEndereco = () => {
             <span className="text-white text-lg font-medium">Admin</span>
           </div>
           <div className="bg-blue-500 px-6 py-2 rounded-xl">
-            <span className="text-white font-medium">cadastrar usuário</span>
+            <span className="text-white font-medium">cadastro usuário</span>
           </div>
         </div>
       </div>

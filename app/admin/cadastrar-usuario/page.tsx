@@ -83,17 +83,17 @@ const CadastroUsuario = () => {
       // Salva os dados do usuário no localStorage para usar na próxima tela
       localStorage.setItem('dadosUsuario', JSON.stringify(formData));
       
-      // Navega para a tela de cadastro de endereço
-      router.push('/cadastrar-endereco');
+      // Navega para a tela de cadastro de endereço dentro da pasta admin
+      router.push('/admin/cadastrar-endereco');
     }
   };
 
   /**
-   * Função para voltar à tela anterior (menu principal)
-   * Navega de volta para a página inicial do sistema
+   * Função para voltar à tela anterior (menu principal do admin)
+   * Navega de volta para a página inicial do painel administrativo
    */
   const handleVoltar = () => {
-    router.push('/');
+    router.push('/admin');
   };
 
   return (
