@@ -26,12 +26,6 @@ export function CardDemo() {
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [dialogStep, setDialogStep] = useState(1);
   const [salaInfo, setSalaInfo] = useState("");
-  const [temperaturas, setTemperaturas] = useState([
-    { id: 1, nome: "Estoque A - Refrigerador Principal", temp: "" },
-    { id: 2, nome: "Estoque B - Freezer -20°C", temp: "" },
-    { id: 3, nome: "Estoque C - Geladeira Auxiliar", temp: "" },
-    { id: 4, nome: "Estoque D - Câmara Fria", temp: "" },
-  ]);
   const [loading, setLoading] = useState(false); // ✅ Estado de loading
 
   const handleSubmit = async (e: any) => {
@@ -77,8 +71,8 @@ export function CardDemo() {
           console.log("✅ Login usuário detectado - mostrando dialog");
           setDialogStep(1);
           setSalaInfo("");
-          setTemperaturas((prev) => prev.map((est) => ({ ...est, temp: "" })));
           setShowUserDialog(true);
+          router.push("/login/dados_login_usuario")
         }
       }
     } catch (error: any) {
@@ -121,62 +115,6 @@ export function CardDemo() {
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUserDialogConfirm = () => {
-    if (dialogStep === 1) {
-      console.log("✅ Sala confirmada:", salaInfo);
-      setDialogStep(2);
-    } else {
-      console.log("✅ Todas as temperaturas preenchidas! Dados finais:");
-      console.log("📍 Sala:", salaInfo);
-      console.log("🌡️ Temperaturas:", temperaturas);
-
-      setShowUserDialog(false);
-      setDialogStep(1);
-      // router.push("/usuario");
-    }
-  };
-
-  const handleUserDialogCancel = () => {
-    console.log("❌ Usuário cancelou na etapa", dialogStep);
-    setShowUserDialog(false);
-    setDialogStep(1);
-    setSalaInfo("");
-    setTemperaturas((prev) => prev.map((est) => ({ ...est, temp: "" })));
-  };
-
-  const handleTemperaturaChange = (id: any, valor: any) => {
-    console.log(`🌡️ Temperatura do estoque ${id} alterada para:`, valor);
-    setTemperaturas((prev) =>
-      prev.map((est) => (est.id === id ? { ...est, temp: valor } : est)),
-    );
-  };
-
-  const voltarParaSala = () => {
-    console.log("⬅️ Voltando para seleção de sala");
-    setDialogStep(1);
-  };
-
-  const podeAvancar = () => {
-    if (dialogStep === 1) {
-      const temSala = salaInfo.trim() !== "";
-      console.log("🔍 Pode avançar etapa 1 (tem sala):", temSala);
-      return temSala;
-    } else {
-      const todasTemperaturas = temperaturas.every(
-        (est) => est.temp.trim() !== "",
-      );
-      console.log("🔍 Pode avançar etapa 2 (todas temps):", todasTemperaturas);
-      console.log(
-        "🌡️ Status das temperaturas:",
-        temperaturas.map((t) => ({
-          id: t.id,
-          preenchida: t.temp.trim() !== "",
-        })),
-      );
-      return todasTemperaturas;
     }
   };
 
@@ -300,165 +238,6 @@ export function CardDemo() {
           </button>
         </div>
       </div>
-
-      {/* AlertDialog com fluxo em etapas - Controle manual de abertura */}
-      <AlertDialog open={showUserDialog} onOpenChange={() => {}}>
-        <AlertDialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
-          {/* ETAPA 1: Informar Sala */}
-          {dialogStep === 1 && (
-            <>
-              <AlertDialogHeader>
-                <AlertDialogTitle>📍 Informação da Sala</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Informe em qual sala você está realizando o controle de
-                  temperatura dos estoques de vacina.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label
-                    htmlFor="sala-input"
-                    className="text-sm font-medium text-gray-700 flex items-center gap-2"
-                  >
-                    <Shield className="w-4 h-4" />
-                    Sala/Setor
-                  </label>
-                  <input
-                    id="sala-input"
-                    type="text"
-                    placeholder="Ex: Sala 101, Farmácia Central, Estoque Principal..."
-                    value={salaInfo}
-                    onChange={(e) => setSalaInfo(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:border-emerald-500 focus:ring-emerald-200"
-                    autoFocus
-                  />
-                </div>
-                {salaInfo && (
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-md">
-                    <p className="text-sm text-emerald-700">
-                      📍 <strong>Sala selecionada:</strong> {salaInfo}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={handleUserDialogCancel}>
-                  Cancelar
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleUserDialogConfirm}
-                  disabled={!podeAvancar()}
-                  className="disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Próximo: Temperaturas →
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </>
-          )}
-
-          {/* ETAPA 2: Informar Temperaturas */}
-          {dialogStep === 2 && (
-            <>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  🌡️ Temperaturas dos Estoques
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  <strong>Sala:</strong> {salaInfo}
-                  <br />
-                  Informe a temperatura atual de cada estoque de vacina:
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-
-              <div className="space-y-4 py-4">
-                {temperaturas.map((estoque) => (
-                  <div key={estoque.id} className="space-y-2">
-                    <label
-                      htmlFor={`temp-${estoque.id}`}
-                      className="text-sm font-medium text-gray-700 flex items-center gap-2"
-                    >
-                      <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
-                        {estoque.id}
-                      </div>
-                      {estoque.nome}
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        id={`temp-${estoque.id}`}
-                        type="number"
-                        step="0.1"
-                        placeholder="Ex: 2.5, -18.0, 4.2..."
-                        value={estoque.temp}
-                        onChange={(e) =>
-                          handleTemperaturaChange(estoque.id, e.target.value)
-                        }
-                        className="flex-1 px-3 py-2 border border-gray-200 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:border-emerald-500 focus:ring-emerald-200"
-                      />
-                      <span className="text-sm text-gray-500 min-w-[30px]">
-                        °C
-                      </span>
-                    </div>
-                    {estoque.temp && (
-                      <p
-                        className={`text-xs ${
-                          parseFloat(estoque.temp) >= -25 &&
-                          parseFloat(estoque.temp) <= 8
-                            ? "text-emerald-600"
-                            : "text-amber-600"
-                        }`}
-                      >
-                        {parseFloat(estoque.temp) >= -25 &&
-                        parseFloat(estoque.temp) <= 8
-                          ? "✓ Temperatura adequada"
-                          : "⚠️ Verifique a temperatura"}
-                      </p>
-                    )}
-                  </div>
-                ))}
-
-                <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
-                  <p className="text-sm font-medium text-gray-700 mb-2">
-                    📊 Resumo:
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    {temperaturas.map((est) => (
-                      <div key={est.id} className="flex justify-between">
-                        <span>Estoque {est.id}:</span>
-                        <span className="font-mono">
-                          {est.temp ? `${est.temp}°C` : "-- °C"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <AlertDialogFooter className="flex justify-between">
-                <button
-                  onClick={voltarParaSala}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  ← Voltar para Sala
-                </button>
-                <div className="flex gap-2">
-                  <AlertDialogCancel onClick={handleUserDialogCancel}>
-                    Cancelar
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleUserDialogConfirm}
-                    disabled={!podeAvancar()}
-                    className="disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    ✅ Ir para Área do Usuário
-                  </AlertDialogAction>
-                </div>
-              </AlertDialogFooter>
-            </>
-          )}
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

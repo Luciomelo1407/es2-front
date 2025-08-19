@@ -41,7 +41,7 @@ export default function VaccineDashboard() {
   const handleAction = async (action: any) => {
 
     if(action == "inserir vacina no estoque"){
-      router.push("/usuario/inserir_vacina")
+      router.push("/vacina/inserir_vacina")
     }
 
     setIsLoading(true)
