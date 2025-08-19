@@ -6,9 +6,16 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Home, User, Syringe, CheckCircle, AlertCircle, Calendar, Package, Building2, Hash, Warehouse, Pill } from 'lucide-react';
+import { Home, User, Syringe, CheckCircle, AlertCircle, Calendar, Package, Building2, Hash, Warehouse, Pill, Route } from 'lucide-react';
 
 export default function InserirVacinaPage() {
+  // Função para navegação sem depender do Next.js router
+  const navigateTo = (path) => {
+    if (typeof window !== 'undefined') {
+      window.location.href = path;
+    }
+  };
+  
   const [formData, setFormData] = useState({
     nomeImunobiologico: '',
     tipoImunobiologico: '',
@@ -105,12 +112,13 @@ export default function InserirVacinaPage() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
+  
   const handleVoltar = () => {
-    console.log('Voltando...');
+    navigateTo('/usuario');
   };
 
   const handleSubmeter = async () => {
+    // Validar formulário primeiro
     if (!validateForm()) {
       // Marcar todos os campos como tocados para mostrar erros
       const allTouched = {};
@@ -123,15 +131,26 @@ export default function InserirVacinaPage() {
 
     setIsSubmitting(true);
     
-    // Simular envio
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    console.log('Dados do formulário:', formData);
-    setIsSubmitting(false);
-    setShowSuccess(true);
-    
-    // Esconder mensagem de sucesso após 3 segundos
-    setTimeout(() => setShowSuccess(false), 3000);
+    try {
+      // Simular envio da vacina
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log('Dados do formulário:', formData);
+      
+      // Mostrar mensagem de sucesso
+      setShowSuccess(true);
+      
+      // Aguardar um pouco para o usuário ver a mensagem de sucesso
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Redirecionar para a página do usuário
+      navigateTo('/usuario');
+      
+    } catch (error) {
+      console.error('Erro ao submeter:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getFieldIcon = (field) => {
@@ -186,7 +205,12 @@ export default function InserirVacinaPage() {
                 Inserir Vacina
               </Badge>
               
-              <Button variant="outline" size="icon" className="hover:bg-gray-50">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="hover:bg-gray-50"
+                onClick={() => navigateTo('/usuario')}
+              >
                 <Home className="w-5 h-5" />
               </Button>
             </div>
@@ -227,7 +251,7 @@ export default function InserirVacinaPage() {
           <Alert className="mb-6 border-emerald-200 bg-emerald-50">
             <CheckCircle className="h-4 w-4 text-emerald-600" />
             <AlertDescription className="text-emerald-800">
-              Vacina inserida com sucesso! Os dados foram salvos no sistema.
+              Vacina inserida com sucesso! Redirecionando para o painel do usuário...
             </AlertDescription>
           </Alert>
         )}
