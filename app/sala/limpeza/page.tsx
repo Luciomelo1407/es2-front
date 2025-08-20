@@ -98,7 +98,7 @@ export default function HigienizacaoSala() {
             <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
               <User className="w-6 h-6 text-gray-600" />
             </div>
-            <span className="text-gray-700 font-medium">usuário</span>
+            <span className="text-gray-700 font-medium">Usuário</span>
           </div>
           
           <button className="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors">
@@ -106,7 +106,7 @@ export default function HigienizacaoSala() {
           </button>
           
           <button onClick={voltarHome} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <Home className="w-8 h-8 text-teal-700" />
+            <Home className="w-8 h-8 text-teal-700" />asdasdsa
           </button>
         </div>
 
@@ -142,7 +142,7 @@ export default function HigienizacaoSala() {
           <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
             <User className="w-6 h-6 text-gray-600" />
           </div>
-          <span className="text-gray-700 font-medium">usuário</span>
+          <span className="text-gray-700 font-medium">Usuário</span>
         </div>
         
         <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export default function HigienizacaoSala() {
           </span>
         </div>
         
-        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <button onClick={voltarHome} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
           <Home className="w-8 h-8 text-teal-700" />
         </button>
       </div>
