@@ -12,6 +12,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth"; // ajuste o caminho conforme sua estrutura
+import axios from "axios";
+import { throws } from "assert";
 
 export default function SalaInfoPage() {
   const router = useRouter();
@@ -47,7 +49,15 @@ export default function SalaInfoPage() {
     );
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
+    const response = await axios.post("http://localhost:3333/infoSala", {
+      profissional_id: profissional?.id,
+      sala_id: salaInfo,
+    });
+
+    if (response.status === 404) {
+    }
+
     if (currentStep === 1 && salaInfo.trim()) {
       setCurrentStep(2);
     }
@@ -211,7 +221,7 @@ export default function SalaInfoPage() {
                     </label>
                     <input
                       id="sala-input"
-                      type="text"
+                      type="number"
                       placeholder="Ex: Sala 101, Farmácia Central, Estoque Principal, UBS Centro..."
                       value={salaInfo}
                       onChange={(e) => setSalaInfo(e.target.value)}
