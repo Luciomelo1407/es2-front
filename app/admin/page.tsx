@@ -46,7 +46,7 @@ const AdminDashboard = () => {
       description: 'Modificar configurações das salas',
       icon: Settings,
       action: 'edit-room',
-      route: '/admin/alterar-sala'
+      route: '/admin/buscar-sala'
     }
   ];
 
