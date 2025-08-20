@@ -52,8 +52,8 @@ export default function VaccineDashboard() {
     if(action == "registrar temperatura"){
       router.push("/vacina/temperatura")
     }
-    if(action == "inserir vacina no estoque"){
-      router.push("/vacina/inserir_vacina")
+    if(action == "ver estoque"){
+      router.push("/vacina/estoque")
     }
 
     setIsLoading(true)
