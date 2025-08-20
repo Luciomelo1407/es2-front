@@ -1,4 +1,4 @@
-'use client';
+'use client' //Não tire, vai parar de funcionar. 
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { Button } from '@/components/ui/button';
@@ -8,39 +8,62 @@ import {
   Plus, 
   Edit3, 
   UserPlus,
-  Settings
+  Settings,
+  Search
 } from 'lucide-react';
 
 const AdminDashboard = () => {
+  const router = useRouter();
+
+  /**
+   * Array com as ações rápidas disponíveis no painel administrativo
+   * Cada ação tem título, descrição, ícone e a rota correspondente
+   */
   const quickActions = [
     {
       title: 'Cadastrar Usuário',
       description: 'Adicionar novo usuário ao sistema',
       icon: UserPlus,
-      action: 'create-user'
+      action: 'create-user',
+      route: '/admin/cadastrar-usuario'
     },
     {
       title: 'Alterar Usuário',
       description: 'Editar informações de usuários existentes',
       icon: Edit3,
-      action: 'edit-user'
+      action: 'edit-user',
+      route: '/admin/buscar-usuario'
     },
     {
       title: 'Cadastrar Sala',
       description: 'Criar nova sala no sistema',
       icon: Plus,
-      action: 'create-room'
+      action: 'create-room',
+      route: '/admin/cadastrar-sala'
     },
     {
       title: 'Alterar Sala',
       description: 'Modificar configurações das salas',
       icon: Settings,
-      action: 'edit-room'
+      action: 'edit-room',
+      route: '/admin/alterar-sala'
     }
   ];
 
-
-  const router = useRouter();
+  /**
+   * Função para lidar com o clique nas ações do painel
+   * Navega para a rota correspondente ou executa ação específica
+   * @param {Object} action - Objeto da ação selecionada
+   */
+  const handleActionClick = (action) => {
+    if (action.route) {
+      console.log(`Navegando para: ${action.route}`);
+      router.push(action.route);
+    } else {
+      console.log(`Ação: ${action.action}`);
+      // Aqui podem ser implementadas outras ações futuras
+    }
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-50 flex items-center justify-center p-6">
@@ -73,12 +96,15 @@ const AdminDashboard = () => {
                   <Button
                     key={index}
                     variant="ghost"
-                    className="h-24 flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 transition-all duration-200 hover:shadow-md group"
-                    onClick={() => action.action === 'create-user' ? router.push('/admin/cadastrar-usuario') : console.log(`Ação: ${action.action}`)}
+                    className="h-28 flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 transition-all duration-200 hover:shadow-md group"
+                    onClick={() => handleActionClick(action)}
                   >
                     <Icon className="h-8 w-8 text-slate-600 group-hover:text-emerald-600 mb-3 transition-colors" />
-                    <span className="text-base font-medium text-slate-700 group-hover:text-emerald-700 text-center transition-colors">
+                    <span className="text-base font-medium text-slate-700 group-hover:text-emerald-700 text-center transition-colors mb-1">
                       {action.title}
+                    </span>
+                    <span className="text-xs text-slate-500 group-hover:text-emerald-600 text-center transition-colors">
+                      {action.description}
                     </span>
                   </Button>
                 );
@@ -87,8 +113,12 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Footer */}
-        
+        {/* Status/Info Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-slate-500">
+            Sistema Vacenf - Gestão de Imunobiológicos
+          </p>
+        </div>
       </div>
     </div>
   );
