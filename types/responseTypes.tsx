@@ -19,3 +19,27 @@ export type AccessToken = {
   lastUsedAt: string | null;
   expiresAt: string | null;
 };
+
+export type ISala = {
+  id: number;
+  tamanho: number | null;
+  acessibilidade: boolean;
+  paredeLavavel: boolean;
+  pisoLavavel: boolean;
+  portaLavavel: boolean;
+  janelaLavavel: boolean;
+  tetoLavavel: boolean;
+  pja: boolean;
+  }
+
+export type Iestoque = {
+  id: number;
+  salaId: number;
+  tipo: string
+}
+
+export type IdiaTrabalho = {
+  id: number;
+  salaId: number;
+  profissionalId:number;
+}

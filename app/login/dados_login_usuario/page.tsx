@@ -14,33 +14,22 @@ import {
 import { useAuth } from "../../../hooks/useAuth"; // ajuste o caminho conforme sua estrutura
 import axios from "axios";
 import { throws } from "assert";
+import { Iestoque, ISala } from "@/types/responseTypes";
+
+type Itemperatura = {
+  id: number;
+  nome: string;
+  temp: string;
+  faixa:string;
+}
 
 export default function SalaInfoPage() {
   const router = useRouter();
   const { profissional, loading, error, retry } = useAuth();
+  const faixa = "2°C a 8°C"
 
   const [salaInfo, setSalaInfo] = useState("");
-  const [temperaturas, setTemperaturas] = useState([
-    {
-      id: 1,
-      nome: "Estoque A - Refrigerador Principal",
-      temp: "",
-      faixa: "2°C a 8°C",
-    },
-    {
-      id: 2,
-      nome: "Estoque B - Freezer -20°C",
-      temp: "",
-      faixa: "-15°C a -25°C",
-    },
-    {
-      id: 3,
-      nome: "Estoque C - Geladeira Auxiliar",
-      temp: "",
-      faixa: "2°C a 8°C",
-    },
-    // { id: 4, nome: "Estoque D - Câmara Fria", temp: "", faixa: "2°C a 8°C" },
-  ]);
+  const [temperaturas, setTemperaturas] = useState<Itemperatura[] | null>([{id:-1,nome:"",temp:"",faixa:""}]);
   const [currentStep, setCurrentStep] = useState(1);
 
   const handleTemperaturaChange = (id: number, valor: string) => {
@@ -50,19 +39,39 @@ export default function SalaInfoPage() {
   };
 
   const handleNextStep = async () => {
-    const response = await axios.post("http://localhost:3333/infoSala", {
-      profissional_id: profissional?.id,
-      sala_id: salaInfo,
-    });
+    try {
+      // console.log('DEBUG',profissional?.id)
+      const response = await axios.post("http://localhost:3333/dia-trabalho", {
+        profissionalId: profissional?.id,
+        salaId: salaInfo,
+      });
+      
+      const sala:ISala = response.data.result.sala
+      const estoques:Iestoque[] = response.data.result.estoques
+      const diaTrabalho = response.data.result.diaTrabalho
+      const estoqueTemp:Itemperatura[] = []
+      for(const estoque of estoques){
+        estoqueTemp.push({
+          id:estoque.id,
+          nome: estoque.tipo,
+          temp: "",
+          faixa:"0°C a 8°C"
+        })
+      }
+      setTemperaturas(estoqueTemp)
+      console.log('DEBUGG:',{sala,estoques,diaTrabalho})
+      
+      
+      if (response.status === 404) {
+      }
 
-    if (response.status === 404) {
-    }
-
-    if (currentStep === 1 && salaInfo.trim()) {
-      setCurrentStep(2);
+      if (currentStep === 1 && salaInfo.trim()) {
+        setCurrentStep(2);
+      }
+    } catch (error) {
+    throw error    
     }
   };
-
   const handlePreviousStep = () => {
     setCurrentStep(1);
   };
@@ -301,7 +310,7 @@ export default function SalaInfoPage() {
                             {estoque.nome}
                           </h3>
                           <p className="text-xs text-gray-500">
-                            Faixa ideal: {estoque.faixa}
+                            Faixa ideal: {faixa}
                           </p>
                         </div>
                       </div>
@@ -331,7 +340,7 @@ export default function SalaInfoPage() {
                             className={`text-xs px-2 py-1 rounded ${
                               getTemperatureStatus(
                                 estoque.temp,
-                                estoque.faixa,
+                                faixa,
                               ) === "ok"
                                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                 : "bg-amber-50 text-amber-700 border border-amber-200"
@@ -339,7 +348,7 @@ export default function SalaInfoPage() {
                           >
                             {getTemperatureStatus(
                               estoque.temp,
-                              estoque.faixa,
+                              faixa,
                             ) === "ok"
                               ? "✓ Temperatura adequada"
                               : "⚠️ Verificar temperatura - fora da faixa ideal"}
