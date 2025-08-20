@@ -54,13 +54,12 @@ export function CardDemo() {
       });
 
       const profissional: IProfissional = response.data.result.profissional;
-      const token: AccessToken = response.data.result.access_token;
+      const token = response.data.result.access_token;
       setCookie(undefined, "auth_token", token.token, {
         maxAge: 60 * 60 * 24 * 30,
         path: "/",
       });
       // console.log("✅ Resposta do backend:", response.data);
-      console.log("DEBUG: ", profissional);
 
       // ✅ Verificar a resposta do backend e redirecionar
       if (response.status === 200) {
@@ -72,7 +71,7 @@ export function CardDemo() {
           setDialogStep(1);
           setSalaInfo("");
           setShowUserDialog(true);
-          router.push("/login/dados_login_usuario")
+          router.push("/login/dados_login_usuario");
         }
       }
     } catch (error: any) {
