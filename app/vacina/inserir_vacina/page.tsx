@@ -1,153 +1,258 @@
-'use client'
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Home, User, Syringe, CheckCircle, AlertCircle, Calendar, Package, Building2, Hash, Warehouse, Pill, Route } from 'lucide-react';
+"use client";
+import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Home,
+  User,
+  Syringe,
+  CheckCircle,
+  AlertCircle,
+  Calendar,
+  Package,
+  Building2,
+  Hash,
+  Warehouse,
+  Pill,
+  Route,
+  Loader2,
+  ChevronsUpDown,
+  Check,
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { Iestoque, ISala, IVacina } from "@/types/responseTypes";
+import axios from "axios";
+import { promises } from "dns";
+import { parseCookies } from "nookies";
+import { cn } from "@/lib/utils";
 
 export default function InserirVacinaPage() {
+  type IVacinaFrom = {
+    estoqueInserido: string;
+    fabricante: string;
+    lote: string;
+    nomeImunobiologico: string;
+    quantidade: string;
+    quantidadeDoses: string;
+    sigla: string;
+    tipoImunobiologico: string;
+    validade: string;
+  };
+  const router = useRouter();
+  const { profissional, loading, error, retry } = useAuth();
+
+  const getSalaEstoques = async () => {
+    try {
+      const timeout = 10000;
+      const token = parseCookies().auth_token;
+      const response = await axios.get(
+        `http://localhost:3333/dia-trabalho/${profissional?.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout,
+        },
+      );
+
+      // Tipando corretamente os dados da resposta
+
+      const salarec: ISala = response.data.result.diaTrabalho.sala;
+      setSala(salarec);
+      const estoquesrec: Iestoque[] =
+        response.data.result.diaTrabalho.sala.estoques;
+      setEstoques(estoquesrec);
+
+      // Atualizando o estado
+      setLoadingD(false);
+
+      return { sala, estoques, loadingD, errorD };
+    } catch (error) {
+      setErrorD("Erro ao carregar dados"); // Exemplo de tratamento de erro
+      setLoadingD(false); // Atualizando estado de loading
+
+      throw error; // Lançando erro novamente
+    }
+  };
+
   // Função para navegação sem depender do Next.js router
   const navigateTo = (path) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.location.href = path;
     }
   };
-  
+
+  const [loadingD, setLoadingD] = useState(true);
+  const [errorD, setErrorD] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    nomeImunobiologico: '',
-    tipoImunobiologico: '',
-    fabricante: '',
-    lote: '',
-    validade: '',
-    quantidade: '',
-    sigla: '',
-    estoqueInserido: '',
-    quantidadeDoses: ''
+    nomeImunobiologico: "",
+    tipoImunobiologico: "",
+    fabricante: "",
+    lote: "",
+    validade: "",
+    quantidade: "",
+    sigla: "",
+    estoqueInserido: "",
+    quantidadeDoses: "",
   });
+  const [openEstoque, setOpenEstoque] = useState(false);
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [touched, setTouched] = useState({});
+  const [touched, setTouched] = useState<IVacinaFrom>();
+  const [sala, setSala] = useState<ISala | null>(null);
+  const [estoques, setEstoques] = useState<Iestoque[] | null>(null);
+
+  useEffect(() => {
+    if (profissional?.id) {
+      getSalaEstoques();
+    }
+  }, [profissional]);
 
   const validateField = (field, value) => {
     switch (field) {
-      case 'nomeImunobiologico':
-        return !value.trim() ? 'Nome do imunobiológico é obrigatório' : '';
-      case 'tipoImunobiologico':
-        return !value.trim() ? 'Tipo do imunobiológico é obrigatório' : '';
-      case 'fabricante':
-        return !value.trim() ? 'Fabricante é obrigatório' : '';
-      case 'lote':
-        return !value.trim() ? 'Lote é obrigatório' : '';
-      case 'validade':
-        if (!value.trim()) return 'Data de validade é obrigatória';
+      case "nomeImunobiologico":
+        return !value.trim() ? "Nome do imunobiológico é obrigatório" : "";
+      case "tipoImunobiologico":
+        return !value.trim() ? "Tipo do imunobiológico é obrigatório" : "";
+      case "fabricante":
+        return !value.trim() ? "Fabricante é obrigatório" : "";
+      case "lote":
+        return !value.trim() ? "Lote é obrigatório" : "";
+      case "validade":
+        if (!value.trim()) return "Data de validade é obrigatória";
         const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-        if (!dateRegex.test(value)) return 'Formato inválido (DD/MM/AAAA)';
+        if (!dateRegex.test(value)) return "Formato inválido (DD/MM/AAAA)";
         const [, day, month, year] = value.match(dateRegex);
         const date = new Date(year, month - 1, day);
-        if (date < new Date()) return 'Data de validade não pode ser no passado';
-        return '';
-      case 'quantidade':
-        if (!value.trim()) return 'Quantidade é obrigatória';
-        if (isNaN(value) || parseInt(value) <= 0) return 'Quantidade deve ser um número positivo';
-        return '';
-      case 'sigla':
-        return !value.trim() ? 'Sigla é obrigatória' : '';
-      case 'estoqueInserido':
-        if (!value.trim()) return 'Estoque inserido é obrigatório';
-        if (isNaN(value) || parseInt(value) <= 0) return 'Estoque deve ser um número positivo';
-        return '';
-      case 'quantidadeDoses':
-        if (!value.trim()) return 'Quantidade de doses é obrigatória';
-        if (isNaN(value) || parseInt(value) <= 0) return 'Quantidade de doses deve ser um número positivo';
-        return '';
+        if (date < new Date())
+          return "Data de validade não pode ser no passado";
+        return "";
+      case "quantidade":
+        if (!value.trim()) return "Quantidade é obrigatória";
+        if (isNaN(value) || parseInt(value) <= 0)
+          return "Quantidade deve ser um número positivo";
+        return "";
+      case "sigla":
+        return !value.trim() ? "Sigla é obrigatória" : "";
+      case "estoqueInserido":
+        if (!value.trim()) return "Estoque inserido é obrigatório";
+        return "";
+      case "quantidadeDoses":
+        if (!value.trim()) return "Quantidade de doses é obrigatória";
+        if (isNaN(value) || parseInt(value) <= 0)
+          return "Quantidade de doses deve ser um número positivo";
+        return "";
       default:
-        return '';
+        return "";
     }
   };
 
   const handleInputChange = (field, value) => {
     // Formatação automática para data
-    if (field === 'validade') {
-      value = value.replace(/\D/g, '');
-      if (value.length >= 3) value = value.replace(/^(\d{2})(\d)/, '$1/$2');
-      if (value.length >= 6) value = value.replace(/^(\d{2})\/(\d{2})(\d)/, '$1/$2/$3');
+    if (field === "validade") {
+      value = value.replace(/\D/g, "");
+      if (value.length >= 3) value = value.replace(/^(\d{2})(\d)/, "$1/$2");
+      if (value.length >= 6)
+        value = value.replace(/^(\d{2})\/(\d{2})(\d)/, "$1/$2/$3");
       if (value.length > 10) value = value.substring(0, 10);
     }
 
-    // Formatação automática para números
-    if (['quantidade', 'estoqueInserido', 'quantidadeDoses'].includes(field)) {
-      value = value.replace(/\D/g, '');
+    // Formatação automática para números (exceto estoqueInserido que agora é um ID)
+    if (["quantidade", "quantidadeDoses"].includes(field)) {
+      value = value.replace(/\D/g, "");
     }
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
 
     // Validação em tempo real
     const error = validateField(field, value);
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
-      [field]: error
+      [field]: error,
     }));
 
     // Marcar campo como tocado
-    setTouched(prev => ({
+    setTouched((prev) => ({
       ...prev,
-      [field]: true
+      [field]: true,
     }));
   };
 
   const validateForm = () => {
     const newErrors = {};
-    Object.keys(formData).forEach(field => {
+    Object.keys(formData).forEach((field) => {
       const error = validateField(field, formData[field]);
       if (error) newErrors[field] = error;
     });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleVoltar = () => {
-    navigateTo('/usuario');
+    navigateTo("/usuario");
   };
 
   const handleSubmeter = async () => {
     // Validar formulário primeiro
     if (!validateForm()) {
       // Marcar todos os campos como tocados para mostrar erros
-      const allTouched = {};
-      Object.keys(formData).forEach(field => {
-        allTouched[field] = true;
-      });
+      const allTouched: IVacinaFrom = {
+        sigla: formData.sigla,
+        nomeImunobiologico: formData.nomeImunobiologico,
+        lote: formData.lote,
+        validade: formData.validade,
+        fabricante: formData.fabricante,
+        quantidade: formData.quantidade,
+        estoqueInserido: formData.estoqueInserido,
+        quantidadeDoses: formData.quantidadeDoses,
+        tipoImunobiologico: formData.tipoImunobiologico,
+      };
+
       setTouched(allTouched);
+      console.log("DEBUG:", formData);
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Simular envio da vacina
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Dados do formulário:', formData);
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      console.log("Dados do formulário:", formData);
+
       // Mostrar mensagem de sucesso
       setShowSuccess(true);
-      
+
       // Aguardar um pouco para o usuário ver a mensagem de sucesso
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       // Redirecionar para a página do usuário
-      navigateTo('/usuario');
-      
+      // navigateTo("/usuario");
     } catch (error) {
-      console.error('Erro ao submeter:', error);
+      console.error("Erro ao submeter:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -163,7 +268,7 @@ export default function InserirVacinaPage() {
       quantidade: Package,
       sigla: Hash,
       estoqueInserido: Warehouse,
-      quantidadeDoses: Package
+      quantidadeDoses: Package,
     };
     return icons[field] || Package;
   };
@@ -176,12 +281,67 @@ export default function InserirVacinaPage() {
     return touched[field] && errors[field];
   };
 
-  const completedFields = Object.keys(formData).filter(field => 
-    formData[field].trim() && !errors[field]
+  const completedFields = Object.keys(formData).filter(
+    (field) => formData[field].trim() && !errors[field],
   ).length;
 
   const totalFields = Object.keys(formData).length;
   const progressPercentage = (completedFields / totalFields) * 100;
+
+  // Função para obter o estoque selecionado
+  const getSelectedEstoque = () => {
+    if (!estoques || !formData.estoqueInserido) return null;
+    return estoques.find(
+      (estoque) => estoque.id.toString() === formData.estoqueInserido,
+    );
+  };
+
+  // Tela de loading
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Verificando autenticação...
+          </h2>
+          <p className="text-gray-600">Aguarde um momento</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Tela de erro
+  if (error) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-red-50 via-red-100 to-red-200 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Acesso Negado
+          </h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <div className="space-y-3">
+            <button
+              onClick={retry}
+              className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            >
+              Tentar Novamente
+            </button>
+            <button
+              onClick={() => router.push("/login")}
+              className="w-full px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+            >
+              Ir para Login
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 mt-4">
+            Redirecionando automaticamente em alguns segundos...
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
@@ -194,22 +354,27 @@ export default function InserirVacinaPage() {
                 <User className="w-6 h-6 text-white" />
               </div>
               <div>
-                <span className="text-lg font-medium text-gray-800">usuário</span>
+                <span className="text-lg font-medium text-gray-800">
+                  usuário
+                </span>
                 <div className="text-sm text-gray-500">Sistema Vacenf</div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4">
-              <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
+              <Badge
+                variant="outline"
+                className="px-4 py-2 text-sm font-medium"
+              >
                 <Syringe className="w-4 h-4 mr-2" />
                 Inserir Vacina
               </Badge>
-              
-              <Button 
-                variant="outline" 
-                size="icon" 
+
+              <Button
+                variant="outline"
+                size="icon"
                 className="hover:bg-gray-50"
-                onClick={() => navigateTo('/usuario')}
+                // onClick={() => navigateTo("/usuario")}
               >
                 <Home className="w-5 h-5" />
               </Button>
@@ -229,17 +394,23 @@ export default function InserirVacinaPage() {
               Vacenf
             </h1>
           </div>
-          <p className="text-gray-600 mt-2">Sistema de Gestão de Imunobiológicos</p>
+          <p className="text-gray-600 mt-2">
+            Sistema de Gestão de Imunobiológicos
+          </p>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">Progresso do formulário</span>
-            <span className="text-sm text-gray-500">{completedFields}/{totalFields} campos</span>
+            <span className="text-sm font-medium text-gray-700">
+              Progresso do formulário
+            </span>
+            <span className="text-sm text-gray-500">
+              {completedFields}/{totalFields} campos
+            </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-gradient-to-r from-emerald-500 to-teal-600 h-2 rounded-full transition-all duration-500"
               style={{ width: `${progressPercentage}%` }}
             />
@@ -251,7 +422,8 @@ export default function InserirVacinaPage() {
           <Alert className="mb-6 border-emerald-200 bg-emerald-50">
             <CheckCircle className="h-4 w-4 text-emerald-600" />
             <AlertDescription className="text-emerald-800">
-              Vacina inserida com sucesso! Redirecionando para o painel do usuário...
+              Vacina inserida com sucesso! Redirecionando para o painel do
+              usuário...
             </AlertDescription>
           </Alert>
         )}
@@ -264,16 +436,23 @@ export default function InserirVacinaPage() {
                 <Syringe className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-white">Cadastro de Imunobiológico</h2>
-                <p className="text-emerald-100">Preencha todos os campos obrigatórios</p>
+                <h2 className="text-xl font-semibold text-white">
+                  Cadastro de Imunobiológico
+                </h2>
+                <p className="text-emerald-100">
+                  Preencha todos os campos obrigatórios
+                </p>
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             {/* Nome do imunobiológico */}
             <div className="space-y-2">
-              <Label htmlFor="nome" className="text-white font-medium text-base flex items-center gap-2">
+              <Label
+                htmlFor="nome"
+                className="text-white font-medium text-base flex items-center gap-2"
+              >
                 <Syringe className="w-4 h-4" />
                 Nome do imunobiológico *
               </Label>
@@ -281,28 +460,38 @@ export default function InserirVacinaPage() {
                 <Input
                   id="nome"
                   value={formData.nomeImunobiologico}
-                  onChange={(e) => handleInputChange('nomeImunobiologico', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("nomeImunobiologico", e.target.value)
+                  }
                   className={`bg-white/95 border-2 h-12 pr-10 transition-all duration-200 ${
-                    isFieldValid('nomeImunobiologico') ? 'border-emerald-500 bg-emerald-50' : 
-                    isFieldInvalid('nomeImunobiologico') ? 'border-red-500 bg-red-50' : 'border-white/50'
+                    isFieldValid("nomeImunobiologico")
+                      ? "border-emerald-500 bg-emerald-50"
+                      : isFieldInvalid("nomeImunobiologico")
+                        ? "border-red-500 bg-red-50"
+                        : "border-white/50"
                   }`}
                   placeholder="Ex: Vacina contra COVID-19"
                 />
-                {isFieldValid('nomeImunobiologico') && (
+                {isFieldValid("nomeImunobiologico") && (
                   <CheckCircle className="absolute right-3 top-3 w-6 h-6 text-emerald-500" />
                 )}
-                {isFieldInvalid('nomeImunobiologico') && (
+                {isFieldInvalid("nomeImunobiologico") && (
                   <AlertCircle className="absolute right-3 top-3 w-6 h-6 text-red-500" />
                 )}
               </div>
               {errors.nomeImunobiologico && touched.nomeImunobiologico && (
-                <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">{errors.nomeImunobiologico}</p>
+                <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">
+                  {errors.nomeImunobiologico}
+                </p>
               )}
             </div>
 
             {/* Tipo do imunobiológico */}
             <div className="space-y-2">
-              <Label htmlFor="tipo" className="text-white font-medium text-base flex items-center gap-2">
+              <Label
+                htmlFor="tipo"
+                className="text-white font-medium text-base flex items-center gap-2"
+              >
                 <Pill className="w-4 h-4" />
                 Tipo do imunobiológico *
               </Label>
@@ -310,25 +499,35 @@ export default function InserirVacinaPage() {
                 <Input
                   id="tipo"
                   value={formData.tipoImunobiologico}
-                  onChange={(e) => handleInputChange('tipoImunobiologico', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("tipoImunobiologico", e.target.value)
+                  }
                   className={`bg-white/95 border-2 h-12 pr-10 transition-all duration-200 ${
-                    isFieldValid('tipoImunobiologico') ? 'border-emerald-500 bg-emerald-50' : 
-                    isFieldInvalid('tipoImunobiologico') ? 'border-red-500 bg-red-50' : 'border-white/50'
+                    isFieldValid("tipoImunobiologico")
+                      ? "border-emerald-500 bg-emerald-50"
+                      : isFieldInvalid("tipoImunobiologico")
+                        ? "border-red-500 bg-red-50"
+                        : "border-white/50"
                   }`}
                   placeholder="Ex: Vacina viral inativada"
                 />
-                {isFieldValid('tipoImunobiologico') && (
+                {isFieldValid("tipoImunobiologico") && (
                   <CheckCircle className="absolute right-3 top-3 w-6 h-6 text-emerald-500" />
                 )}
               </div>
               {errors.tipoImunobiologico && touched.tipoImunobiologico && (
-                <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">{errors.tipoImunobiologico}</p>
+                <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">
+                  {errors.tipoImunobiologico}
+                </p>
               )}
             </div>
 
             {/* Fabricante */}
             <div className="space-y-2">
-              <Label htmlFor="fabricante" className="text-white font-medium text-base flex items-center gap-2">
+              <Label
+                htmlFor="fabricante"
+                className="text-white font-medium text-base flex items-center gap-2"
+              >
                 <Building2 className="w-4 h-4" />
                 Fabricante *
               </Label>
@@ -336,26 +535,36 @@ export default function InserirVacinaPage() {
                 <Input
                   id="fabricante"
                   value={formData.fabricante}
-                  onChange={(e) => handleInputChange('fabricante', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("fabricante", e.target.value)
+                  }
                   className={`bg-white/95 border-2 h-12 pr-10 transition-all duration-200 ${
-                    isFieldValid('fabricante') ? 'border-emerald-500 bg-emerald-50' : 
-                    isFieldInvalid('fabricante') ? 'border-red-500 bg-red-50' : 'border-white/50'
+                    isFieldValid("fabricante")
+                      ? "border-emerald-500 bg-emerald-50"
+                      : isFieldInvalid("fabricante")
+                        ? "border-red-500 bg-red-50"
+                        : "border-white/50"
                   }`}
                   placeholder="Ex: Pfizer-BioNTech"
                 />
-                {isFieldValid('fabricante') && (
+                {isFieldValid("fabricante") && (
                   <CheckCircle className="absolute right-3 top-3 w-6 h-6 text-emerald-500" />
                 )}
               </div>
               {errors.fabricante && touched.fabricante && (
-                <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">{errors.fabricante}</p>
+                <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">
+                  {errors.fabricante}
+                </p>
               )}
             </div>
 
             {/* Lote, Validade e Quantidade */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="lote" className="text-white font-medium text-base flex items-center gap-2">
+                <Label
+                  htmlFor="lote"
+                  className="text-white font-medium text-base flex items-center gap-2"
+                >
                   <Hash className="w-4 h-4" />
                   Lote *
                 </Label>
@@ -363,24 +572,32 @@ export default function InserirVacinaPage() {
                   <Input
                     id="lote"
                     value={formData.lote}
-                    onChange={(e) => handleInputChange('lote', e.target.value)}
+                    onChange={(e) => handleInputChange("lote", e.target.value)}
                     className={`bg-white/95 border-2 h-12 pr-10 transition-all duration-200 ${
-                      isFieldValid('lote') ? 'border-emerald-500 bg-emerald-50' : 
-                      isFieldInvalid('lote') ? 'border-red-500 bg-red-50' : 'border-white/50'
+                      isFieldValid("lote")
+                        ? "border-emerald-500 bg-emerald-50"
+                        : isFieldInvalid("lote")
+                          ? "border-red-500 bg-red-50"
+                          : "border-white/50"
                     }`}
                     placeholder="Ex: ABC123"
                   />
-                  {isFieldValid('lote') && (
+                  {isFieldValid("lote") && (
                     <CheckCircle className="absolute right-3 top-3 w-6 h-6 text-emerald-500" />
                   )}
                 </div>
                 {errors.lote && touched.lote && (
-                  <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">{errors.lote}</p>
+                  <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">
+                    {errors.lote}
+                  </p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="validade" className="text-white font-medium text-base flex items-center gap-2">
+                <Label
+                  htmlFor="validade"
+                  className="text-white font-medium text-base flex items-center gap-2"
+                >
                   <Calendar className="w-4 h-4" />
                   Validade *
                 </Label>
@@ -389,24 +606,34 @@ export default function InserirVacinaPage() {
                     id="validade"
                     placeholder="DD/MM/AAAA"
                     value={formData.validade}
-                    onChange={(e) => handleInputChange('validade', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("validade", e.target.value)
+                    }
                     className={`bg-white/95 border-2 h-12 pr-10 transition-all duration-200 ${
-                      isFieldValid('validade') ? 'border-emerald-500 bg-emerald-50' : 
-                      isFieldInvalid('validade') ? 'border-red-500 bg-red-50' : 'border-white/50'
+                      isFieldValid("validade")
+                        ? "border-emerald-500 bg-emerald-50"
+                        : isFieldInvalid("validade")
+                          ? "border-red-500 bg-red-50"
+                          : "border-white/50"
                     } placeholder-gray-400`}
                     maxLength={10}
                   />
-                  {isFieldValid('validade') && (
+                  {isFieldValid("validade") && (
                     <CheckCircle className="absolute right-3 top-3 w-6 h-6 text-emerald-500" />
                   )}
                 </div>
                 {errors.validade && touched.validade && (
-                  <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">{errors.validade}</p>
+                  <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">
+                    {errors.validade}
+                  </p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="quantidade" className="text-white font-medium text-base flex items-center gap-2">
+                <Label
+                  htmlFor="quantidade"
+                  className="text-white font-medium text-base flex items-center gap-2"
+                >
                   <Package className="w-4 h-4" />
                   Quantidade *
                 </Label>
@@ -414,19 +641,26 @@ export default function InserirVacinaPage() {
                   <Input
                     id="quantidade"
                     value={formData.quantidade}
-                    onChange={(e) => handleInputChange('quantidade', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("quantidade", e.target.value)
+                    }
                     className={`bg-white/95 border-2 h-12 pr-10 transition-all duration-200 ${
-                      isFieldValid('quantidade') ? 'border-emerald-500 bg-emerald-50' : 
-                      isFieldInvalid('quantidade') ? 'border-red-500 bg-red-50' : 'border-white/50'
+                      isFieldValid("quantidade")
+                        ? "border-emerald-500 bg-emerald-50"
+                        : isFieldInvalid("quantidade")
+                          ? "border-red-500 bg-red-50"
+                          : "border-white/50"
                     }`}
                     placeholder="Ex: 100"
                   />
-                  {isFieldValid('quantidade') && (
+                  {isFieldValid("quantidade") && (
                     <CheckCircle className="absolute right-3 top-3 w-6 h-6 text-emerald-500" />
                   )}
                 </div>
                 {errors.quantidade && touched.quantidade && (
-                  <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">{errors.quantidade}</p>
+                  <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">
+                    {errors.quantidade}
+                  </p>
                 )}
               </div>
             </div>
@@ -434,7 +668,10 @@ export default function InserirVacinaPage() {
             {/* Sigla e Estoque inserido */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="sigla" className="text-white font-medium text-base flex items-center gap-2">
+                <Label
+                  htmlFor="sigla"
+                  className="text-white font-medium text-base flex items-center gap-2"
+                >
                   <Hash className="w-4 h-4" />
                   Sigla *
                 </Label>
@@ -442,51 +679,128 @@ export default function InserirVacinaPage() {
                   <Input
                     id="sigla"
                     value={formData.sigla}
-                    onChange={(e) => handleInputChange('sigla', e.target.value)}
+                    onChange={(e) => handleInputChange("sigla", e.target.value)}
                     className={`bg-white/95 border-2 h-12 pr-10 transition-all duration-200 ${
-                      isFieldValid('sigla') ? 'border-emerald-500 bg-emerald-50' : 
-                      isFieldInvalid('sigla') ? 'border-red-500 bg-red-50' : 'border-white/50'
+                      isFieldValid("sigla")
+                        ? "border-emerald-500 bg-emerald-50"
+                        : isFieldInvalid("sigla")
+                          ? "border-red-500 bg-red-50"
+                          : "border-white/50"
                     }`}
                     placeholder="Ex: COVID19"
                   />
-                  {isFieldValid('sigla') && (
+                  {isFieldValid("sigla") && (
                     <CheckCircle className="absolute right-3 top-3 w-6 h-6 text-emerald-500" />
                   )}
                 </div>
                 {errors.sigla && touched.sigla && (
-                  <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">{errors.sigla}</p>
+                  <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">
+                    {errors.sigla}
+                  </p>
                 )}
               </div>
-              
+
+              {/* Campo Estoque inserido com Combobox */}
               <div className="space-y-2">
-                <Label htmlFor="estoque" className="text-white font-medium text-base flex items-center gap-2">
+                <Label
+                  htmlFor="estoque"
+                  className="text-white font-medium text-base flex items-center gap-2"
+                >
                   <Warehouse className="w-4 h-4" />
                   Estoque inserido *
                 </Label>
                 <div className="relative">
-                  <Input
-                    id="estoque"
-                    value={formData.estoqueInserido}
-                    onChange={(e) => handleInputChange('estoqueInserido', e.target.value)}
-                    className={`bg-white/95 border-2 h-12 pr-10 transition-all duration-200 ${
-                      isFieldValid('estoqueInserido') ? 'border-emerald-500 bg-emerald-50' : 
-                      isFieldInvalid('estoqueInserido') ? 'border-red-500 bg-red-50' : 'border-white/50'
-                    }`}
-                    placeholder="Ex: 50"
-                  />
-                  {isFieldValid('estoqueInserido') && (
-                    <CheckCircle className="absolute right-3 top-3 w-6 h-6 text-emerald-500" />
+                  <Popover open={openEstoque} onOpenChange={setOpenEstoque}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openEstoque}
+                        className={`w-full justify-between bg-white/95 border-2 h-12 transition-all duration-200 ${
+                          isFieldValid("estoqueInserido")
+                            ? "border-emerald-500 bg-emerald-50 text-gray-900"
+                            : isFieldInvalid("estoqueInserido")
+                              ? "border-red-500 bg-red-50 text-gray-900"
+                              : "border-white/50 text-gray-900"
+                        } hover:bg-white/90`}
+                      >
+                        {formData.estoqueInserido
+                          ? `Estoque ${getSelectedEstoque()?.tipo || ""} (ID: ${getSelectedEstoque()?.id})`
+                          : "Selecione um estoque..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Pesquisar estoque..."
+                          className="h-9"
+                        />
+                        <CommandEmpty>
+                          {loadingD
+                            ? "Carregando estoques..."
+                            : "Nenhum estoque encontrado."}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {estoques &&
+                            estoques.map((estoque) => (
+                              <CommandItem
+                                key={estoque.id}
+                                value={estoque.id.toString()}
+                                onSelect={(currentValue) => {
+                                  handleInputChange(
+                                    "estoqueInserido",
+                                    currentValue === formData.estoqueInserido
+                                      ? ""
+                                      : currentValue,
+                                  );
+                                  setOpenEstoque(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    formData.estoqueInserido ===
+                                      estoque.id.toString()
+                                      ? "opacity-100"
+                                      : "opacity-0",
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <span className="font-medium">
+                                    Estoque {estoque.tipo}
+                                  </span>
+                                  <span className="text-sm text-gray-500">
+                                    ID: {estoque.id} • Sala: {estoque.salaId}
+                                  </span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {isFieldValid("estoqueInserido") && (
+                    <CheckCircle className="absolute right-3 top-3 w-6 h-6 text-emerald-500 pointer-events-none" />
+                  )}
+                  {isFieldInvalid("estoqueInserido") && (
+                    <AlertCircle className="absolute right-3 top-3 w-6 h-6 text-red-500 pointer-events-none" />
                   )}
                 </div>
                 {errors.estoqueInserido && touched.estoqueInserido && (
-                  <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">{errors.estoqueInserido}</p>
+                  <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">
+                    {errors.estoqueInserido}
+                  </p>
                 )}
               </div>
             </div>
 
             {/* Quantidade de doses */}
             <div className="space-y-2">
-              <Label htmlFor="doses" className="text-white font-medium text-base flex items-center gap-2">
+              <Label
+                htmlFor="doses"
+                className="text-white font-medium text-base flex items-center gap-2"
+              >
                 <Package className="w-4 h-4" />
                 Quantidade de doses *
               </Label>
@@ -494,19 +808,26 @@ export default function InserirVacinaPage() {
                 <Input
                   id="doses"
                   value={formData.quantidadeDoses}
-                  onChange={(e) => handleInputChange('quantidadeDoses', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("quantidadeDoses", e.target.value)
+                  }
                   className={`bg-white/95 border-2 h-12 pr-10 transition-all duration-200 ${
-                    isFieldValid('quantidadeDoses') ? 'border-emerald-500 bg-emerald-50' : 
-                    isFieldInvalid('quantidadeDoses') ? 'border-red-500 bg-red-50' : 'border-white/50'
+                    isFieldValid("quantidadeDoses")
+                      ? "border-emerald-500 bg-emerald-50"
+                      : isFieldInvalid("quantidadeDoses")
+                        ? "border-red-500 bg-red-50"
+                        : "border-white/50"
                   }`}
                   placeholder="Ex: 2"
                 />
-                {isFieldValid('quantidadeDoses') && (
+                {isFieldValid("quantidadeDoses") && (
                   <CheckCircle className="absolute right-3 top-3 w-6 h-6 text-emerald-500" />
                 )}
               </div>
               {errors.quantidadeDoses && touched.quantidadeDoses && (
-                <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">{errors.quantidadeDoses}</p>
+                <p className="text-red-100 text-sm bg-red-500/20 p-2 rounded">
+                  {errors.quantidadeDoses}
+                </p>
               )}
             </div>
 
@@ -519,10 +840,12 @@ export default function InserirVacinaPage() {
               >
                 Voltar
               </Button>
-              
+
               <Button
                 onClick={handleSubmeter}
-                disabled={isSubmitting || Object.keys(errors).some(key => errors[key])}
+                disabled={
+                  isSubmitting || Object.keys(errors).some((key) => errors[key])
+                }
                 className="flex-1 bg-white text-emerald-600 hover:bg-gray-50 h-12 text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 {isSubmitting ? (

@@ -15,21 +15,24 @@ import { useAuth } from "../../../hooks/useAuth"; // ajuste o caminho conforme s
 import axios from "axios";
 import { throws } from "assert";
 import { Iestoque, ISala } from "@/types/responseTypes";
+import { parseCookies } from "nookies";
 
 type Itemperatura = {
   id: number;
   nome: string;
   temp: string;
-  faixa:string;
-}
+  faixa: string;
+};
 
 export default function SalaInfoPage() {
   const router = useRouter();
   const { profissional, loading, error, retry } = useAuth();
-  const faixa = "2°C a 8°C"
+  const faixa = "2°C a 8°C";
 
   const [salaInfo, setSalaInfo] = useState("");
-  const [temperaturas, setTemperaturas] = useState<Itemperatura[] | null>([{id:-1,nome:"",temp:"",faixa:""}]);
+  const [temperaturas, setTemperaturas] = useState<Itemperatura[]>([
+    { id: -1, nome: "", temp: "", faixa: "" },
+  ]);
   const [currentStep, setCurrentStep] = useState(1);
 
   const handleTemperaturaChange = (id: number, valor: string) => {
@@ -40,28 +43,37 @@ export default function SalaInfoPage() {
 
   const handleNextStep = async () => {
     try {
-      // console.log('DEBUG',profissional?.id)
-      const response = await axios.post("http://localhost:3333/dia-trabalho", {
-        profissionalId: profissional?.id,
-        salaId: salaInfo,
-      });
-      
-      const sala:ISala = response.data.result.sala
-      const estoques:Iestoque[] = response.data.result.estoques
-      const diaTrabalho = response.data.result.diaTrabalho
-      const estoqueTemp:Itemperatura[] = []
-      for(const estoque of estoques){
+      const token = parseCookies().auth_token;
+      const timeout = 100000;
+      const response = await axios.post(
+        "http://localhost:3333/dia-trabalho",
+        {
+          profissionalId: profissional?.id,
+          salaId: salaInfo,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout,
+        },
+      );
+
+      const sala: ISala = response.data.result.sala;
+      const estoques: Iestoque[] = response.data.result.estoques;
+      const diaTrabalho = response.data.result.diaTrabalho;
+      const estoqueTemp: Itemperatura[] = [];
+      for (const estoque of estoques) {
         estoqueTemp.push({
-          id:estoque.id,
+          id: estoque.id,
           nome: estoque.tipo,
           temp: "",
-          faixa:"0°C a 8°C"
-        })
+          faixa: "0°C a 8°C",
+        });
       }
-      setTemperaturas(estoqueTemp)
-      console.log('DEBUGG:',{sala,estoques,diaTrabalho})
-      
-      
+      setTemperaturas(estoqueTemp);
+      console.log("DEBUGG:", { sala, estoques, diaTrabalho });
+
       if (response.status === 404) {
       }
 
@@ -69,19 +81,48 @@ export default function SalaInfoPage() {
         setCurrentStep(2);
       }
     } catch (error) {
-    throw error    
+      throw error;
     }
   };
   const handlePreviousStep = () => {
     setCurrentStep(1);
   };
 
-  const handleSubmit = () => {
-    console.log("📍 Sala:", salaInfo);
-    console.log("🌡️ Temperaturas:", temperaturas);
-    console.log("👤 Usuário:", profissional);
-    alert("Dados salvos com sucesso!");
-    router.push("/usuario");
+  const handleSubmit = async () => {
+    try {
+      const regTemperaturas = temperaturas.map((temperatura) => {
+        return {
+          estoqueId: temperatura.id,
+          temperatura: temperatura.temp,
+          profissionalId: profissional?.id,
+        };
+      });
+
+      console.log("DEBUGG:", regTemperaturas);
+      const cookies = parseCookies();
+      const token = cookies.auth_token;
+      const timeout = 10000;
+
+      const response = await axios.post(
+        "http://localhost:3333/reg-temperatura",
+        regTemperaturas.map((element) => element),
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          timeout,
+        },
+      );
+
+      console.log("📍 Sala:", salaInfo);
+      console.log("🌡️ Temperaturas:", temperaturas);
+      console.log("👤 Usuário:", profissional);
+      alert("Dados salvos com sucesso!");
+      router.push("/usuario");
+    } catch (error) {
+      throw error;
+    }
   };
 
   const isStep1Valid = salaInfo.trim() !== "";
@@ -338,18 +379,12 @@ export default function SalaInfoPage() {
                         {estoque.temp && (
                           <div
                             className={`text-xs px-2 py-1 rounded ${
-                              getTemperatureStatus(
-                                estoque.temp,
-                                faixa,
-                              ) === "ok"
+                              getTemperatureStatus(estoque.temp, faixa) === "ok"
                                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                 : "bg-amber-50 text-amber-700 border border-amber-200"
                             }`}
                           >
-                            {getTemperatureStatus(
-                              estoque.temp,
-                              faixa,
-                            ) === "ok"
+                            {getTemperatureStatus(estoque.temp, faixa) === "ok"
                               ? "✓ Temperatura adequada"
                               : "⚠️ Verificar temperatura - fora da faixa ideal"}
                           </div>
