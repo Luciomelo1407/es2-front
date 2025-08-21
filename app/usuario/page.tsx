@@ -55,6 +55,9 @@ export default function VaccineDashboard() {
     if(action == "ver estoque"){
       router.push("/vacina/estoque")
     }
+    if(action == "ver mapa de temperatura"){
+      router.push("/vacina/temperatura/mapa")
+    }
 
     setIsLoading(true)
     setSelectedAction(action)
