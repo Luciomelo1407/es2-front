@@ -10,22 +10,27 @@ import { useRouter } from 'next/navigation';
 const CriarSala = () => {
   const router = useRouter();
   
-  // Estado para armazenar os dados da sala
+  // Estado principal para dados da sala utilizando objeto único
+  // Decisão: centralização facilita validação e envio de dados
   const [dadosSala, setDadosSala] = useState({
     numeroSala: '',
     estoque: ''
   });
 
-  // Estado para controlar o loading da criação
+  // Estado para controle de loading durante operação assíncrona
+  // Previne múltiplos cliques e fornece feedback visual ao usuário
   const [criandoSala, setCriandoSala] = useState(false);
 
-  // Estado para mostrar tela de sucesso
+  // Estado para controle da tela de sucesso pós-criação
+  // Implementa fluxo de feedback positivo com redirecionamento automático
   const [salaCriada, setSalaCriada] = useState(false);
 
-  // Estado para controlar validação
+  // Estado para gerenciamento de erros de validação por campo
+  // Permite feedback específico e granular para cada input
   const [erros, setErros] = useState({});
 
-  // Opções de estoque disponíveis
+  // Lista estática de opções de estoque disponíveis no sistema
+  // Decisão: dados fixos por serem configurações estáveis do sistema
   const opcoesEstoque = [
     { value: '', label: 'Selecione o estoque' },
     { value: 'principal', label: 'Estoque Principal' },
@@ -34,14 +39,19 @@ const CriarSala = () => {
     { value: 'backup', label: 'Estoque Backup' }
   ];
 
-  // Função para atualizar campos do formulário
+  /**
+   * Atualiza campos do formulário mantendo imutabilidade do estado
+   * Implementa limpeza automática de erros para melhorar UX
+   */
   const handleInputChange = (campo, valor) => {
+    // Atualiza valor usando spread operator para preservar outros campos
     setDadosSala(prev => ({
       ...prev,
       [campo]: valor
     }));
     
-    // Remove erro do campo quando usuário digita
+    // Remove erro específico quando usuário corrige o campo
+    // Feedback imediato melhora experiência do usuário
     if (erros[campo]) {
       setErros(prev => ({
         ...prev,
@@ -50,16 +60,21 @@ const CriarSala = () => {
     }
   };
 
-  // Função para validar formulário
+  /**
+   * Executa validação client-side dos campos obrigatórios
+   * Retorna boolean indicando se formulário está válido para envio
+   */
   const validarFormulario = () => {
     const novosErros = {};
 
+    // Validação do número da sala com verificação de conteúdo
     if (!dadosSala.numeroSala.trim()) {
       novosErros.numeroSala = 'Número da sala é obrigatório';
     } else if (dadosSala.numeroSala.trim().length < 1) {
       novosErros.numeroSala = 'Número da sala deve ter pelo menos 1 caractere';
     }
 
+    // Validação de seleção de estoque obrigatória
     if (!dadosSala.estoque) {
       novosErros.estoque = 'Estoque é obrigatório';
     }
@@ -68,8 +83,12 @@ const CriarSala = () => {
     return Object.keys(novosErros).length === 0;
   };
 
-  // Função para criar a sala
+  /**
+   * Processa criação da sala com validação, loading e feedback
+   * Implementa fluxo completo de criação com tratamento de erros
+   */
   const handleCriarSala = async () => {
+    // Interrompe execução se validação falhar
     if (!validarFormulario()) {
       return;
     }
@@ -77,14 +96,16 @@ const CriarSala = () => {
     setCriandoSala(true);
     
     try {
-      // Simula chamada à API
+      // Simulação de chamada à API com delay realista
+      // TODO: Substituir por chamada real ao endpoint de criação
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       console.log('Sala criada:', dadosSala);
       
+      // Ativa tela de sucesso para feedback positivo
       setSalaCriada(true);
       
-      // Volta para o menu principal após 2 segundos
+      // Redirecionamento automático após tempo suficiente para leitura
       setTimeout(() => {
         router.push('/admin');
       }, 2000);
@@ -93,19 +114,25 @@ const CriarSala = () => {
       console.error('Erro ao criar sala:', error);
       alert('Erro ao criar sala. Tente novamente.');
     } finally {
+      // Garante que loading seja removido independente do resultado
       setCriandoSala(false);
     }
   };
 
-  // Função para voltar ao menu
+  /**
+   * Navega de volta ao menu principal preservando contexto
+   * Permite cancelamento da operação a qualquer momento
+   */
   const handleVoltar = () => {
     router.push('/admin');
   };
 
-  // Verifica se todos os campos obrigatórios estão preenchidos
+  // Computed property para habilitar/desabilitar botão de submissão
+  // Melhora UX fornecendo indicação visual de formulário completo
   const formularioValido = dadosSala.numeroSala.trim() && dadosSala.estoque;
 
-  // Tela de sucesso
+  // Renderização condicional da tela de sucesso
+  // Substitui formulário por feedback visual e confirmação da ação
   if (salaCriada) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-50 flex items-center justify-center p-4">
@@ -129,7 +156,7 @@ const CriarSala = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-50 p-4">
-      {/* Header */}
+      {/* Header com identificação de contexto administrativo */}
       <div className="flex justify-between items-center mb-8 max-w-4xl mx-auto">
         <div className="flex items-center">
           <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center mr-3">
@@ -143,7 +170,8 @@ const CriarSala = () => {
       </div>
 
       <div className="max-w-2xl mx-auto">
-        {/* Título */}
+        {/* Seção de título com ícone representativo */}
+        {/* Design centrado para criar foco na ação principal */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-500 rounded-2xl mb-6 shadow-lg">
             <Building className="h-10 w-10 text-white" />
@@ -156,7 +184,7 @@ const CriarSala = () => {
           </p>
         </div>
 
-        {/* Formulário */}
+        {/* Formulário principal com design glassmorphism */}
         <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0 rounded-3xl">
           <CardHeader className="pb-6 pt-8">
             <CardTitle className="text-center text-xl text-slate-700 font-medium flex items-center justify-center">
@@ -167,7 +195,7 @@ const CriarSala = () => {
           
           <CardContent className="px-8 pb-8">
             <div className="space-y-6">
-              {/* Número da Sala */}
+              {/* Campo número da sala com validação visual */}
               <div className="space-y-2">
                 <Label className="text-slate-700 font-medium text-sm">
                   Número da sala *
@@ -182,12 +210,14 @@ const CriarSala = () => {
                   }`}
                   placeholder="Ex: 101, A-15, Sala 1"
                 />
+                {/* Mensagem de erro específica renderizada condicionalmente */}
                 {erros.numeroSala && (
                   <p className="text-red-500 text-xs mt-1">{erros.numeroSala}</p>
                 )}
               </div>
 
-              {/* Estoque */}
+              {/* Select nativo para compatibilidade e performance */}
+              {/* Decisão: select nativo evita dependências adicionais */}
               <div className="space-y-2">
                 <Label className="text-slate-700 font-medium text-sm">
                   Estoque *
@@ -207,12 +237,14 @@ const CriarSala = () => {
                     </option>
                   ))}
                 </select>
+                {/* Feedback de erro específico para seleção de estoque */}
                 {erros.estoque && (
                   <p className="text-red-500 text-xs mt-1">{erros.estoque}</p>
                 )}
               </div>
 
-              {/* Botões */}
+              {/* Seção de botões com layout justificado */}
+              {/* Permite navegação bidirecional e ação principal destacada */}
               <div className="flex justify-between pt-6">
                 <Button
                   onClick={handleVoltar}
@@ -224,6 +256,8 @@ const CriarSala = () => {
                   Voltar
                 </Button>
 
+                {/* Botão principal com estados visuais distintos */}
+                {/* Loading spinner e desabilitação previnem ações duplicadas */}
                 <Button
                   onClick={handleCriarSala}
                   disabled={!formularioValido || criandoSala}
@@ -246,7 +280,7 @@ const CriarSala = () => {
           </CardContent>
         </Card>
 
-        {/* Footer */}
+        {/* Footer com identificação do sistema */}
         <div className="mt-8 text-center">
           <p className="text-sm text-slate-500">
             Sistema Vacenf - Gestão de Imunobiológicos

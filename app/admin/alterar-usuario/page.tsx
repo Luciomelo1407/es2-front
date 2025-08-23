@@ -1,4 +1,4 @@
-'use client' //Não tire, vai parar de funcionar. 
+'use client' // Diretiva necessária para componentes client-side no Next.js 13+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,9 @@ import { useRouter } from 'next/navigation';
 
 const AlterarUsuarioDados = () => {
   const router = useRouter();
-  // Estado para armazenar os dados do usuário em edição
+  
+  // Estado principal do formulário estruturado para facilitar validações e atualizações
+  // Inclui todos os campos necessários para edição de dados pessoais
   const [dadosUsuario, setDadosUsuario] = useState({
     nomeCompleto: '',
     coren: '',
@@ -19,28 +21,36 @@ const AlterarUsuarioDados = () => {
     cpf: ''
   });
 
-  // Estado para controlar o loading do salvamento
+  // Estado de controle para feedback visual durante operações assíncronas
   const [salvando, setSalvando] = useState(false);
 
-  // Simula carregar dados do localStorage (em produção viria de uma API)
+  /**
+   * Carrega dados do usuário selecionado ao montar o componente
+   * Utiliza localStorage como persistência temporária durante o fluxo de edição
+   */
   useEffect(() => {
-    // Tenta carregar dados do usuário selecionado do localStorage
+    // Recuperação de dados do localStorage para continuidade do processo de edição
     const usuarioSalvo = localStorage.getItem('usuarioParaAlterar');
     if (usuarioSalvo) {
       const usuarioSelecionado = JSON.parse(usuarioSalvo);
+      
+      // Inicialização com dados existentes, mantendo senha vazia por segurança
       setDadosUsuario({
         nomeCompleto: usuarioSelecionado.nomeCompleto || '',
         coren: usuarioSelecionado.coren || '',
         ocupacao: usuarioSelecionado.ocupacao || '',
         email: usuarioSelecionado.email || '',
-        senha: '',
+        senha: '', // Campo senha sempre inicia vazio por motivos de segurança
         dataNascimento: usuarioSelecionado.dataNascimento || '',
         cpf: usuarioSelecionado.cpf || ''
       });
     }
   }, []);
 
-  // Função para atualizar campos do formulário
+  /**
+   * Atualiza campos específicos do formulário mantendo imutabilidade do estado
+   * Implementa padrão genérico reutilizável para qualquer campo do formulário
+   */
   const handleInputChange = (campo, valor) => {
     setDadosUsuario(prev => ({
       ...prev,
@@ -48,36 +58,44 @@ const AlterarUsuarioDados = () => {
     }));
   };
 
-  // Função para prosseguir para a página de endereço
+  /**
+   * Processa salvamento dos dados pessoais e navega para próxima etapa
+   * Implementa validação, feedback visual e persistência para continuidade do fluxo
+   */
   const handleProsseguirParaEndereco = async () => {
     setSalvando(true);
     
     try {
-      // Simula chamada à API para salvar os dados pessoais
+      // Simulação de chamada à API com delay realista para UX
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       console.log('Dados pessoais salvos:', dadosUsuario);
       
-      // Salva os dados no localStorage para a próxima etapa
+      // Persistência no localStorage para manter dados entre navegações
       localStorage.setItem('dadosUsuarioAlterados', JSON.stringify(dadosUsuario));
       
-      // Navega para a página de alteração de endereço
+      // Navegação para próxima etapa do processo multi-step
       router.push('/admin/alterar-endereco');
       
     } catch (error) {
       console.error('Erro ao salvar alterações:', error);
+      // Feedback de erro simples - em produção usar toast/notification system
       alert('Erro ao salvar alterações. Tente novamente.');
     } finally {
       setSalvando(false);
     }
   };
 
-  // Função para voltar à busca
+  /**
+   * Executa navegação de retorno para página de busca de usuários
+   * Mantém consistência no fluxo de navegação do sistema
+   */
   const handleVoltar = () => {
     router.push('/admin/buscar-usuario');
   };
 
-  // Verifica se todos os campos obrigatórios estão preenchidos
+  // Validação reativa de campos obrigatórios para controle do botão de submit
+  // Implementada como computed value para reatividade automática
   const todosObrigatoriosPreenchidos = dadosUsuario.nomeCompleto && 
     dadosUsuario.coren && 
     dadosUsuario.ocupacao && 
@@ -88,7 +106,7 @@ const AlterarUsuarioDados = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        {/* Header */}
+        {/* Header centralizado com branding do sistema */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-500 rounded-2xl mb-6 shadow-lg">
             <Edit3 className="h-10 w-10 text-white" />
@@ -101,13 +119,13 @@ const AlterarUsuarioDados = () => {
           </p>
         </div>
 
-        {/* Progress */}
+        {/* Indicador de progresso para processo multi-etapas */}
         <div className="flex justify-between items-center mb-8">
           <span className="text-sm text-slate-500">Progresso do formulário</span>
           <span className="text-sm text-slate-500">Etapa 1 de 2 - Dados Pessoais</span>
         </div>
 
-        {/* Formulário */}
+        {/* Card principal do formulário com design elevado */}
         <div className="bg-emerald-500 rounded-3xl p-8 shadow-2xl">
           <div className="mb-6">
             <div className="flex items-center text-white mb-2">
@@ -120,7 +138,7 @@ const AlterarUsuarioDados = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Nome completo */}
+            {/* Campo nome completo com ícone contextual */}
             <div className="space-y-2">
               <Label className="text-white font-medium flex items-center">
                 <User className="h-4 w-4 mr-2" />
@@ -134,7 +152,7 @@ const AlterarUsuarioDados = () => {
               />
             </div>
 
-            {/* COREN */}
+            {/* Campo COREN com identificação profissional */}
             <div className="space-y-2">
               <Label className="text-white font-medium flex items-center">
                 <CheckCircle className="h-4 w-4 mr-2" />
@@ -148,7 +166,7 @@ const AlterarUsuarioDados = () => {
               />
             </div>
 
-            {/* Ocupação */}
+            {/* Seletor de ocupação com opções pré-definidas */}
             <div className="space-y-2">
               <Label className="text-white font-medium flex items-center">
                 <User className="h-4 w-4 mr-2" />
@@ -166,7 +184,7 @@ const AlterarUsuarioDados = () => {
               </select>
             </div>
 
-            {/* Email */}
+            {/* Campo email com validação de tipo */}
             <div className="space-y-2">
               <Label className="text-white font-medium">
                 Email *
@@ -180,7 +198,7 @@ const AlterarUsuarioDados = () => {
               />
             </div>
 
-            {/* Senha */}
+            {/* Campo senha opcional com placeholder informativo */}
             <div className="space-y-2">
               <Label className="text-white font-medium">
                 Nova Senha
@@ -194,7 +212,7 @@ const AlterarUsuarioDados = () => {
               />
             </div>
 
-            {/* Data de nascimento e CPF */}
+            {/* Layout responsivo para campos relacionados */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-white font-medium">
@@ -222,7 +240,7 @@ const AlterarUsuarioDados = () => {
               </div>
             </div>
 
-            {/* Mensagem de progresso */}
+            {/* Feedback visual durante operação de salvamento */}
             {salvando && (
               <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-xl flex items-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
@@ -230,7 +248,7 @@ const AlterarUsuarioDados = () => {
               </div>
             )}
 
-            {/* Botões */}
+            {/* Área de ações com navegação e progressão */}
             <div className="flex justify-between pt-6">
               <Button
                 onClick={handleVoltar}
@@ -241,6 +259,7 @@ const AlterarUsuarioDados = () => {
                 Voltar
               </Button>
 
+              {/* Botão de progressão com validação condicional e estados visuais */}
               <Button
                 onClick={handleProsseguirParaEndereco}
                 disabled={!todosObrigatoriosPreenchidos || salvando}

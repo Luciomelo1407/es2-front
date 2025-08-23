@@ -17,10 +17,8 @@ import { useRouter } from 'next/navigation';
 const CadastroUsuario = () => {
   const router = useRouter();
   
-  /**
-   * Estado para armazenar todos os dados do formulário de cadastro
-   * Contém todos os campos necessários para o registro de um novo usuário
-   */
+  // Estado centralizado para todos os campos do formulário de cadastro
+  // Decisão: objeto único facilita validação, serialização e navegação multi-etapa
   const [formData, setFormData] = useState({
     nomeCompleto: '',
     coren: '',
@@ -32,9 +30,8 @@ const CadastroUsuario = () => {
   });
 
   /**
-   * Função para atualizar um campo específico do formulário
-   * @param {string} field - Nome do campo a ser atualizado
-   * @param {string} value - Novo valor para o campo
+   * Atualiza campo específico do formulário mantendo imutabilidade
+   * Utiliza spread operator para preservar outros campos durante atualização
    */
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -44,25 +41,28 @@ const CadastroUsuario = () => {
   };
 
   /**
-   * Função para validar se todos os campos obrigatórios foram preenchidos
-   * @returns {boolean} - True se todos os campos obrigatórios estão preenchidos
+   * Executa validação client-side de todos os campos obrigatórios
+   * Implementa validações específicas para email e CPF com feedback imediato
    */
   const validateForm = () => {
     const { nomeCompleto, coren, ocupacao, email, senha, dataNascimento, cpf } = formData;
     
+    // Validação de preenchimento de campos obrigatórios
     if (!nomeCompleto || !coren || !ocupacao || !email || !senha || !dataNascimento || !cpf) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return false;
     }
     
-    // Validação básica de email
+    // Validação de formato de email usando regex padrão
+    // Decisão: validação básica suficiente para feedback inicial do usuário
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       alert('Por favor, insira um email válido.');
       return false;
     }
     
-    // Validação básica de CPF (11 dígitos)
+    // Validação de CPF brasileiro (formato de 11 dígitos)
+    // Remove caracteres não numéricos para verificação de comprimento
     const cpfNumbers = cpf.replace(/\D/g, '');
     if (cpfNumbers.length !== 11) {
       alert('Por favor, insira um CPF válido.');
@@ -73,24 +73,25 @@ const CadastroUsuario = () => {
   };
 
   /**
-   * Função para processar o envio do formulário e navegar para a tela de endereço
-   * Valida os dados e salva no localStorage antes de prosseguir
+   * Processa envio da primeira etapa do formulário multi-etapa
+   * Salva dados no localStorage para persistência entre navegações
    */
   const handleSubmit = () => {
     if (validateForm()) {
       console.log('Dados do usuário:', formData);
       
-      // Salva os dados do usuário no localStorage para usar na próxima tela
+      // Persiste dados no localStorage para fluxo multi-etapa
+      // Decisão: localStorage permite navegação bidirecional sem perda de dados
       localStorage.setItem('dadosUsuario', JSON.stringify(formData));
       
-      // Navega para a tela de cadastro de endereço dentro da pasta admin
+      // Navega para segunda etapa do cadastro (endereço)
       router.push('/admin/cadastrar-endereco');
     }
   };
 
   /**
-   * Função para voltar à tela anterior (menu principal do admin)
-   * Navega de volta para a página inicial do painel administrativo
+   * Navega de volta ao menu principal cancelando operação atual
+   * Permite saída do fluxo sem salvar dados parciais
    */
   const handleVoltar = () => {
     router.push('/admin');
@@ -98,7 +99,7 @@ const CadastroUsuario = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header */}
+      {/* Header com contexto do sistema e ação secundária */}
       <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center space-x-3">
@@ -110,6 +111,7 @@ const CadastroUsuario = () => {
               <p className="text-sm text-gray-500">Sistema Vacenf</p>
             </div>
           </div>
+          {/* Botão de ação secundária sempre disponível */}
           <Button className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg">
             <Shield className="h-4 w-4 mr-2" />
             Inserir Vacina
@@ -117,9 +119,9 @@ const CadastroUsuario = () => {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Container principal com largura responsiva */}
       <div className="max-w-4xl mx-auto px-6 py-8">
-        {/* Title Section */}
+        {/* Seção de título centralizada para foco visual */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-full mb-4">
             <Edit className="h-8 w-8 text-white" />
@@ -128,13 +130,13 @@ const CadastroUsuario = () => {
           <p className="text-gray-600">Sistema de Gestão de Imunobiológicos</p>
         </div>
 
-        {/* Progress Indicator */}
+        {/* Indicador de progresso para orientação em fluxo multi-etapa */}
         <div className="flex items-center justify-between mb-8">
           <span className="text-sm text-gray-500">Progresso do formulário</span>
           <span className="text-sm text-gray-400">Etapa 1 de 2 - Dados Pessoais</span>
         </div>
 
-        {/* Form Card */}
+        {/* Formulário principal com design destacado */}
         <Card className="bg-emerald-500 border-0 shadow-xl">
           <CardHeader className="bg-emerald-500 rounded-t-lg">
             <CardTitle className="text-white text-xl font-semibold flex items-center">
@@ -145,7 +147,7 @@ const CadastroUsuario = () => {
           </CardHeader>
           
           <CardContent className="bg-emerald-500 p-6 space-y-6">
-            {/* Nome do usuário */}
+            {/* Campo nome com ícone identificador */}
             <div>
               <Label className="text-white font-medium mb-2 flex items-center">
                 <User className="h-4 w-4 mr-2" />
@@ -159,7 +161,7 @@ const CadastroUsuario = () => {
               />
             </div>
 
-            {/* COREN */}
+            {/* Campo COREN específico para profissionais de enfermagem */}
             <div>
               <Label className="text-white font-medium mb-2 flex items-center">
                 <Shield className="h-4 w-4 mr-2" />
@@ -173,7 +175,8 @@ const CadastroUsuario = () => {
               />
             </div>
 
-            {/* Ocupação */}
+            {/* Select de ocupações relacionadas ao contexto hospitalar */}
+            {/* Decisão: lista fixa por serem cargos padronizados no sistema de saúde */}
             <div>
               <Label className="text-white font-medium mb-2 flex items-center">
                 <User className="h-4 w-4 mr-2" />
@@ -193,7 +196,7 @@ const CadastroUsuario = () => {
               </Select>
             </div>
 
-            {/* Email */}
+            {/* Campo email com tipo específico para teclados móveis */}
             <div>
               <Label className="text-white font-medium mb-2 block">Email *</Label>
               <Input
@@ -205,7 +208,7 @@ const CadastroUsuario = () => {
               />
             </div>
 
-            {/* Senha */}
+            {/* Campo senha com tipo password para segurança */}
             <div>
               <Label className="text-white font-medium mb-2 block">Senha *</Label>
               <Input
@@ -217,7 +220,8 @@ const CadastroUsuario = () => {
               />
             </div>
 
-            {/* Data de Nascimento e CPF - Row */}
+            {/* Grid responsivo para otimizar espaço em campos relacionados */}
+            {/* Decisão: agrupa data e CPF por serem dados pessoais básicos */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label className="text-white font-medium mb-2 block">Data de nascimento *</Label>
@@ -229,6 +233,7 @@ const CadastroUsuario = () => {
                 />
               </div>
               
+              {/* Campo CPF com limitação de caracteres para UX */}
               <div>
                 <Label className="text-white font-medium mb-2 block">CPF *</Label>
                 <Input
@@ -241,7 +246,8 @@ const CadastroUsuario = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Seção de botões com navegação bidirecional */}
+            {/* Layout justificado permite cancelamento e prosseguimento claros */}
             <div className="flex justify-between pt-6">
               <Button
                 onClick={handleVoltar}
@@ -251,6 +257,7 @@ const CadastroUsuario = () => {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar
               </Button>
+              {/* Botão principal com indicação clara da próxima etapa */}
               <Button
                 onClick={handleSubmit}
                 className="bg-white text-emerald-500 hover:bg-gray-50 px-8 py-3 rounded-lg font-medium shadow-md"
