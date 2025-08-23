@@ -8,14 +8,25 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Home, User, Syringe, CheckCircle, AlertCircle, Calendar, Package, Building2, Hash, Warehouse, Pill, Route } from 'lucide-react';
 
+/**
+ * Componente principal para inserção de dados de vacinas no sistema
+ * Gerencia formulário completo com validação em tempo real e feedback visual
+ */
 export default function InserirVacinaPage() {
-  // Função para navegação sem depender do Next.js router
+  /**
+   * Função de navegação independente do Next.js Router
+   * Utiliza window.location para compatibilidade com diferentes ambientes
+   */
   const navigateTo = (path) => {
     if (typeof window !== 'undefined') {
       window.location.href = path;
     }
   };
   
+  /**
+   * Estado principal do formulário contendo todos os campos necessários
+   * Estrutura organizada para facilitar validação e submissão
+   */
   const [formData, setFormData] = useState({
     nomeImunobiologico: '',
     tipoImunobiologico: '',
@@ -28,11 +39,16 @@ export default function InserirVacinaPage() {
     quantidadeDoses: ''
   });
 
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [touched, setTouched] = useState({});
+  // Estados para controle de validação e interface
+  const [errors, setErrors] = useState({});              // Armazena erros de validação por campo
+  const [isSubmitting, setIsSubmitting] = useState(false);  // Controla estado de submissão
+  const [showSuccess, setShowSuccess] = useState(false);     // Controla exibição de mensagem de sucesso
+  const [touched, setTouched] = useState({});               // Rastreia campos que foram interagidos
 
+  /**
+   * Função de validação individual por campo
+   * Implementa regras específicas para cada tipo de dado
+   */
   const validateField = (field, value) => {
     switch (field) {
       case 'nomeImunobiologico':
@@ -44,6 +60,7 @@ export default function InserirVacinaPage() {
       case 'lote':
         return !value.trim() ? 'Lote é obrigatório' : '';
       case 'validade':
+        // Validação complexa para data com formato e lógica temporal
         if (!value.trim()) return 'Data de validade é obrigatória';
         const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
         if (!dateRegex.test(value)) return 'Formato inválido (DD/MM/AAAA)';
@@ -52,16 +69,19 @@ export default function InserirVacinaPage() {
         if (date < new Date()) return 'Data de validade não pode ser no passado';
         return '';
       case 'quantidade':
+        // Validação numérica com verificação de valor positivo
         if (!value.trim()) return 'Quantidade é obrigatória';
         if (isNaN(value) || parseInt(value) <= 0) return 'Quantidade deve ser um número positivo';
         return '';
       case 'sigla':
         return !value.trim() ? 'Sigla é obrigatória' : '';
       case 'estoqueInserido':
+        // Validação similar à quantidade para consistência
         if (!value.trim()) return 'Estoque inserido é obrigatório';
         if (isNaN(value) || parseInt(value) <= 0) return 'Estoque deve ser um número positivo';
         return '';
       case 'quantidadeDoses':
+        // Validação para doses seguindo mesmo padrão numérico
         if (!value.trim()) return 'Quantidade de doses é obrigatória';
         if (isNaN(value) || parseInt(value) <= 0) return 'Quantidade de doses deve ser um número positivo';
         return '';
@@ -70,57 +90,77 @@ export default function InserirVacinaPage() {
     }
   };
 
+  /**
+   * Gerenciador de mudanças nos inputs com formatação automática
+   * Aplica máscaras e validação em tempo real para melhor UX
+   */
   const handleInputChange = (field, value) => {
-    // Formatação automática para data
+    // Formatação automática para campo de data
     if (field === 'validade') {
+      // Remove caracteres não numéricos e aplica máscara DD/MM/AAAA
       value = value.replace(/\D/g, '');
       if (value.length >= 3) value = value.replace(/^(\d{2})(\d)/, '$1/$2');
       if (value.length >= 6) value = value.replace(/^(\d{2})\/(\d{2})(\d)/, '$1/$2/$3');
       if (value.length > 10) value = value.substring(0, 10);
     }
 
-    // Formatação automática para números
+    // Formatação para campos numéricos - permite apenas dígitos
     if (['quantidade', 'estoqueInserido', 'quantidadeDoses'].includes(field)) {
       value = value.replace(/\D/g, '');
     }
 
+    // Atualiza o estado do formulário
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
 
-    // Validação em tempo real
+    // Executa validação em tempo real para feedback imediato
     const error = validateField(field, value);
     setErrors(prev => ({
       ...prev,
       [field]: error
     }));
 
-    // Marcar campo como tocado
+    // Marca o campo como interagido para controle de exibição de erros
     setTouched(prev => ({
       ...prev,
       [field]: true
     }));
   };
 
+  /**
+   * Validação completa do formulário antes da submissão
+   * Verifica todos os campos e consolida erros
+   */
   const validateForm = () => {
     const newErrors = {};
+    // Itera sobre todos os campos aplicando validação individual
     Object.keys(formData).forEach(field => {
       const error = validateField(field, formData[field]);
       if (error) newErrors[field] = error;
     });
     setErrors(newErrors);
+    // Retorna true apenas se não houver erros
     return Object.keys(newErrors).length === 0;
   };
   
+  /**
+   * Função de navegação para voltar à página inicial
+   * Centraliza a lógica de navegação para reutilização
+   */
   const handleVoltar = () => {
     navigateTo('/usuario');
   };
 
+  /**
+   * Processa a submissão do formulário com validação completa
+   * Implementa fluxo completo de envio, feedback e redirecionamento
+   */
   const handleSubmeter = async () => {
-    // Validar formulário primeiro
+    // Executa validação completa antes de prosseguir
     if (!validateForm()) {
-      // Marcar todos os campos como tocados para mostrar erros
+      // Marca todos os campos como tocados para exibir todos os erros
       const allTouched = {};
       Object.keys(formData).forEach(field => {
         allTouched[field] = true;
@@ -132,27 +172,33 @@ export default function InserirVacinaPage() {
     setIsSubmitting(true);
     
     try {
-      // Simular envio da vacina
+      // Simula requisição à API com delay realista
       await new Promise(resolve => setTimeout(resolve, 2000));
       
+      // Em produção, aqui seria feita a requisição real à API
       console.log('Dados do formulário:', formData);
       
-      // Mostrar mensagem de sucesso
+      // Exibe feedback de sucesso ao usuário
       setShowSuccess(true);
       
-      // Aguardar um pouco para o usuário ver a mensagem de sucesso
+      // Aguarda visualização da mensagem de sucesso
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Redirecionar para a página do usuário
+      // Redireciona para página inicial após sucesso
       navigateTo('/usuario');
       
     } catch (error) {
       console.error('Erro ao submeter:', error);
+      // Em produção, aqui seria tratado o erro com mensagem ao usuário
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /**
+   * Retorna o ícone apropriado para cada campo do formulário
+   * Melhora a identificação visual e usabilidade da interface
+   */
   const getFieldIcon = (field) => {
     const icons = {
       nomeImunobiologico: Syringe,
@@ -168,14 +214,26 @@ export default function InserirVacinaPage() {
     return icons[field] || Package;
   };
 
+  /**
+   * Verifica se um campo está válido e foi preenchido
+   * Utilizado para feedback visual positivo
+   */
   const isFieldValid = (field) => {
     return touched[field] && !errors[field] && formData[field].trim();
   };
 
+  /**
+   * Verifica se um campo possui erro após interação
+   * Utilizado para feedback visual de erro
+   */
   const isFieldInvalid = (field) => {
     return touched[field] && errors[field];
   };
 
+  /**
+   * Calcula progresso do preenchimento do formulário
+   * Conta campos válidos para barra de progresso
+   */
   const completedFields = Object.keys(formData).filter(field => 
     formData[field].trim() && !errors[field]
   ).length;

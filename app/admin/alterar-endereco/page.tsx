@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 
 const AlterarUsuarioEndereco = () => {
   const router = useRouter();
-  
+
   // Gerenciamento de estado para formulário de endereço
   // Implementado como objeto único para facilitar atualizações e validações
   const [dadosEndereco, setDadosEndereco] = useState({
@@ -42,7 +42,7 @@ const AlterarUsuarioEndereco = () => {
     const usuarioSalvo = localStorage.getItem('usuarioParaAlterar');
     if (usuarioSalvo) {
       const usuario = JSON.parse(usuarioSalvo);
-      
+
       // Inicialização condicional baseada na existência de dados de endereço
       if (usuario.endereco) {
         setDadosEndereco(usuario.endereco);
@@ -90,13 +90,13 @@ const AlterarUsuarioEndereco = () => {
    */
   const buscarEnderecoPorCEP = async (cep) => {
     const cepLimpo = cep.replace(/\D/g, '');
-    
+
     // Validação de CEP completo (8 dígitos) antes da requisição
     if (cepLimpo.length === 8) {
       try {
         // Simulação de delay de API para UX realista
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         // Mock de dados - substituir por integração real em produção
         const enderecoEncontrado = {
           estado: 'SP',
@@ -124,7 +124,7 @@ const AlterarUsuarioEndereco = () => {
   const handleCEPChange = (valor) => {
     const cepFormatado = formatarCEP(valor);
     handleInputChange('cep', cepFormatado);
-    
+
     // Trigger automático de busca quando CEP está completo (9 caracteres com hífen)
     if (cepFormatado.length === 9) {
       buscarEnderecoPorCEP(cepFormatado);
@@ -137,21 +137,21 @@ const AlterarUsuarioEndereco = () => {
    */
   const handleFinalizarAlteracoes = async () => {
     setFinalizando(true);
-    
+
     try {
       // Simulação de chamada à API - substituir por endpoint real
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       console.log('Endereço alterado:', dadosEndereco);
-      
+
       // Transição de estado para tela de sucesso
       setAlteracoesFinalizadas(true);
-      
+
       // Auto-redirecionamento com delay para permitir leitura da mensagem de sucesso
       setTimeout(() => {
         router.push('/admin');
       }, 2000);
-      
+
     } catch (error) {
       console.error('Erro ao finalizar alterações:', error);
       // Feedback de erro simples - em produção usar toast/notification mais elaborado
@@ -170,11 +170,11 @@ const AlterarUsuarioEndereco = () => {
 
   // Validação de campos obrigatórios para habilitar botão de finalização
   // Implementada como computed value para reatividade automática
-  const camposObrigatoriosPreenchidos = dadosEndereco.cep && 
-    dadosEndereco.estado && 
-    dadosEndereco.cidade && 
-    dadosEndereco.bairro && 
-    dadosEndereco.rua && 
+  const camposObrigatoriosPreenchidos = dadosEndereco.cep &&
+    dadosEndereco.estado &&
+    dadosEndereco.cidade &&
+    dadosEndereco.bairro &&
+    dadosEndereco.rua &&
     dadosEndereco.numero;
 
   // Renderização condicional da tela de sucesso
