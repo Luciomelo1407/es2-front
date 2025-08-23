@@ -1,4 +1,4 @@
-'use client'
+'use client' // Diretiva necessária para componentes client-side no Next.js 13+
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,13 @@ import {
 
 const BuscarSala = () => {
   const router = useRouter();
+  
+  // Estado para controlar efeitos visuais de hover nos cards
+  // Implementado para criar feedback interativo durante navegação
   const [hoveredRoom, setHoveredRoom] = useState(null);
 
-  // Salas existentes simuladas
+  // Base de dados simulada para ambiente de desenvolvimento
+  // Em produção seria substituída por chamadas à API ou estado global
   const existingRooms = [
     { id: 1, numero: '101', estoque: 'Estoque Principal', status: 'Ativa' },
     { id: 2, numero: 'A-15', estoque: 'Estoque Secundário', status: 'Ativa' },
@@ -24,11 +28,19 @@ const BuscarSala = () => {
     { id: 6, numero: 'C-10', estoque: 'Estoque de Emergência', status: 'Ativa' }
   ];
 
+  /**
+   * Processa seleção de sala e navega para página de edição
+   * Utiliza query parameters para manter referência da sala selecionada
+   */
   const handleRoomSelect = (room) => {
-    // Navegar para a tela de alterar sala passando o ID da sala
+    // Navegação com ID da sala via query parameter para preservar contexto
     router.push(`/admin/alterar-sala?id=${room.id}`);
   };
 
+  /**
+   * Executa navegação de retorno para menu principal
+   * Mantém fluxo consistente de navegação do sistema administrativo
+   */
   const handleVoltar = () => {
     router.push('/admin');
   };
@@ -36,7 +48,7 @@ const BuscarSala = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+        {/* Header com navegação e identificação do usuário */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Button
@@ -58,7 +70,7 @@ const BuscarSala = () => {
           </div>
         </div>
 
-        {/* Title Section */}
+        {/* Seção de título com contexto da funcionalidade */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-2xl mb-4">
             <Search className="h-8 w-8 text-emerald-600" />
@@ -71,7 +83,7 @@ const BuscarSala = () => {
           </p>
         </div>
 
-        {/* Rooms Grid */}
+        {/* Grid responsivo de salas com interatividade visual */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {existingRooms.map((room) => (
             <Card
@@ -88,6 +100,7 @@ const BuscarSala = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
+                    {/* Ícone com cores baseadas no status da sala */}
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                       room.status === 'Ativa' ? 'bg-emerald-100' : 'bg-gray-100'
                     }`}>
@@ -99,6 +112,7 @@ const BuscarSala = () => {
                       <CardTitle className="text-lg font-semibold text-gray-900">
                         {room.numero}
                       </CardTitle>
+                      {/* Badge de status com cores diferenciadas */}
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           room.status === 'Ativa' 
@@ -110,12 +124,14 @@ const BuscarSala = () => {
                       </div>
                     </div>
                   </div>
+                  {/* Indicador visual de interação com animação */}
                   <ChevronRight className={`h-5 w-5 transition-all duration-200 ${
                     hoveredRoom === room.id ? 'text-emerald-600 translate-x-1' : 'text-gray-400'
                   }`} />
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
+                {/* Informações detalhadas da sala organizadas */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-500">Estoque:</span>
@@ -131,7 +147,7 @@ const BuscarSala = () => {
           ))}
         </div>
 
-        {/* Empty State or Additional Actions */}
+        {/* Estado vazio com ação de recuperação para o usuário */}
         {existingRooms.length === 0 && (
           <Card className="bg-white shadow-sm border-0 text-center py-12">
             <CardContent>
@@ -152,7 +168,7 @@ const BuscarSala = () => {
           </Card>
         )}
 
-        {/* Footer Info */}
+        {/* Footer com identificação do sistema */}
         <div className="text-center mt-12">
           <p className="text-sm text-gray-500">
             Sistema Vacenf - Gestão de Imunobiológicos
