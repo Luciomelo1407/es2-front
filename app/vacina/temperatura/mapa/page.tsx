@@ -7,12 +7,22 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Thermometer, Package, Refrigerator, User, CheckCircle, Shield } from 'lucide-react';
 import { useRouter } from "next/navigation";
 
+/**
+* Componente principal do mapa de temperatura
+* Gerencia visualização e navegação entre diferentes tipos de monitoramento de temperatura
+*/
 const MapaTemperatura = () => {
+  // Hook de navegação para redirecionamento entre páginas
   const router = useRouter();
 
+  // Estado para controle da aba ativa no sistema de abas
+  // Define qual tipo de monitoramento está sendo exibido atualmente
   const [abaAtiva, setAbaAtiva] = useState('caixa-termica');
-  
-  // Estado para dados da caixa térmica
+
+  /**
+   * Estado para armazenar dados específicos da caixa térmica
+   * Centraliza informações de monitoramento deste tipo de equipamento
+   */
   const [dadosCaixaTermica, setDadosCaixaTermica] = useState({
     caixa: '',
     dias: Array(3).fill().map(() => ({
@@ -53,49 +63,103 @@ const MapaTemperatura = () => {
     observacoes: ''
   });
 
+  /**
+ * Navega de volta para a página principal do usuário
+ * Executa redirecionamento com log para rastreamento de navegação
+ */
   const handleVoltar = () => {
+    // Utiliza o router do Next.js para navegação programática
     router.push("/usuario");
+
+    // Log para debug e monitoramento do fluxo de navegação
     console.log('Voltando...');
   };
 
+  /**
+* Processa o envio dos dados de temperatura baseado na aba ativa
+* Implementa lógica condicional para diferentes tipos de equipamentos
+*/
   const handleSubmeter = () => {
+    // Verifica qual tipo de equipamento está sendo monitorado
     if (abaAtiva === 'caixa-termica') {
+      // Log específico para dados de caixa térmica
       console.log('Submetendo dados da caixa térmica:', dadosCaixaTermica);
     } else {
+      // Log para dados de câmara quando não é caixa térmica
       console.log('Submetendo dados da câmara:', dadosCamara);
     }
+
+    // Feedback visual simples para confirmação do envio
     alert('Dados submetidos com sucesso!');
+
+    // Redirecionamento automático para página do usuário após submissão
     router.push("/usuario");
   };
 
+  /**
+ * Atualiza dados da caixa térmica de forma hierárquica
+ * Permite modificação em diferentes níveis: geral, dia específico ou registro específico
+ */
   const updateCaixaTermica = (campo, valor, diaIndex = null, registroIndex = null) => {
     setDadosCaixaTermica(prev => {
+      // Atualização de registro específico dentro de um dia específico
       if (diaIndex !== null && registroIndex !== null) {
+        // Cria cópia do array de dias para manter imutabilidade
         const newDias = [...prev.dias];
+
+        // Atualiza o campo específico do registro no dia correspondente
         newDias[diaIndex].registros[registroIndex][campo] = valor;
+
+        // Retorna novo estado preservando outras propriedades
         return { ...prev, dias: newDias };
-      } else if (diaIndex !== null) {
+      }
+      // Atualização de campo geral de um dia específico
+      else if (diaIndex !== null) {
+        // Cria cópia do array de dias
         const newDias = [...prev.dias];
+
+        // Atualiza campo no nível do dia
         newDias[diaIndex][campo] = valor;
+
         return { ...prev, dias: newDias };
-      } else {
+      }
+      // Atualização de campo no nível raiz da caixa térmica
+      else {
+        // Atualiza propriedade diretamente no objeto principal
         return { ...prev, [campo]: valor };
       }
     });
   };
 
+  /**
+  * Atualiza dados da câmara com estrutura flexível por tipo de registro
+  * Permite modificação tanto em campos gerais quanto em registros específicos por categoria
+  */
   const updateCamara = (campo, valor, tipo = null, index = null) => {
     setDadosCamara(prev => {
+      // Atualização de registro específico dentro de um tipo de monitoramento
       if (tipo && index !== null) {
+        // Cria cópia do array de registros do tipo específico para manter imutabilidade
         const newRegistros = [...prev[tipo]];
+
+        // Atualiza o campo específico no registro indicado pelo índice
         newRegistros[index][campo] = valor;
+
+        // Retorna novo estado preservando outras categorias e o tipo atualizado
         return { ...prev, [tipo]: newRegistros };
-      } else {
+      }
+      // Atualização de campo no nível raiz da câmara
+      else {
+        // Atualiza propriedade diretamente no objeto principal da câmara
         return { ...prev, [campo]: valor };
       }
     });
   };
 
+  /**
+* Renderiza a interface de monitoramento de caixa térmica
+* Exibe formulário estruturado para registro de temperaturas por dias e horários
+*/
   const renderCaixaTermica = () => (
     <div className="space-y-6">
       {/* Campo CAIXA */}
@@ -211,6 +275,10 @@ const MapaTemperatura = () => {
     </div>
   );
 
+  /**
+* Renderiza a interface de monitoramento de câmara refrigerada
+* Exibe controles para registro de temperaturas em ambiente de refrigeração controlada
+*/
   const renderCamaraRefrigerada = () => (
     <div className="space-y-6">
       {/* Cabeçalho da câmara */}
@@ -287,7 +355,7 @@ const MapaTemperatura = () => {
             {/* Manhã (7 horas) */}
             <tr className="bg-gray-50">
               <td rowSpan={4} className="border border-gray-300 p-2 font-semibold text-center">
-                MANHÃ<br/>(7 horas)
+                MANHÃ<br />(7 horas)
               </td>
             </tr>
             <tr>
@@ -338,7 +406,7 @@ const MapaTemperatura = () => {
             {/* Tarde (17 horas) */}
             <tr className="bg-gray-50">
               <td rowSpan={4} className="border border-gray-300 p-2 font-semibold text-center">
-                TARDE<br/>(17 horas)
+                TARDE<br />(17 horas)
               </td>
             </tr>
             <tr>
@@ -394,7 +462,7 @@ const MapaTemperatura = () => {
             {/* Manhã - Segunda quinzena */}
             <tr className="bg-gray-50">
               <td rowSpan={4} className="border border-gray-300 p-2 font-semibold text-center">
-                MANHÃ<br/>(7 horas)
+                MANHÃ<br />(7 horas)
               </td>
             </tr>
             <tr>
@@ -440,7 +508,7 @@ const MapaTemperatura = () => {
             {/* Tarde - Segunda quinzena */}
             <tr className="bg-gray-50">
               <td rowSpan={4} className="border border-gray-300 p-2 font-semibold text-center">
-                TARDE<br/>(17 horas)
+                TARDE<br />(17 horas)
               </td>
             </tr>
             <tr>
@@ -575,22 +643,20 @@ const MapaTemperatura = () => {
           <div className="flex mb-6 bg-white border border-gray-200 rounded-lg p-1 inline-flex">
             <button
               onClick={() => setAbaAtiva('caixa-termica')}
-              className={`flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200 ${
-                abaAtiva === 'caixa-termica'
-                  ? 'bg-teal-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
+              className={`flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200 ${abaAtiva === 'caixa-termica'
+                ? 'bg-teal-500 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+                }`}
             >
               <Package className="h-4 w-4 mr-2" />
               Caixa Térmica
             </button>
             <button
               onClick={() => setAbaAtiva('camara-refrigerada')}
-              className={`flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200 ${
-                abaAtiva === 'camara-refrigerada'
-                  ? 'bg-teal-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
+              className={`flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200 ${abaAtiva === 'camara-refrigerada'
+                ? 'bg-teal-500 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+                }`}
             >
               <Refrigerator className="h-4 w-4 mr-2" />
               Câmara Refrigerada
@@ -604,7 +670,7 @@ const MapaTemperatura = () => {
                 {abaAtiva === 'caixa-termica' ? 'Registro - Caixa Térmica' : 'Registro - Câmara Refrigerada'}
               </CardTitle>
             </CardHeader>
-            
+
             <CardContent className="p-6">
               {abaAtiva === 'caixa-termica' ? renderCaixaTermica() : renderCamaraRefrigerada()}
 
@@ -618,7 +684,7 @@ const MapaTemperatura = () => {
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Voltar
                 </Button>
-                
+
                 <Button
                   onClick={handleSubmeter}
                   className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2"
