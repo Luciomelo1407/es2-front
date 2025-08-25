@@ -3,26 +3,17 @@ import { useState, useEffect } from "react";
 import { Home, User, Package, Clock, AlertTriangle, CheckCircle, Search, Filter, RefreshCw, Thermometer, ChevronRight, MapPin, ArrowRightLeft, Trash2, X, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-/**
- * Componente principal para visualização e gerenciamento de estoque de vacinas
- * Permite filtrar, buscar, transferir e descartar vacinas dos diferentes freezers
- */
 export default function VisualizarEstoque() {
   const router = useRouter();
 
-  // Estados para controle de filtros e busca
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("todos");
   const [selectedEstoque, setSelectedEstoque] = useState("freezer-a1");
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Estados para controle dos modais de ação
   const [showActionModal, setShowActionModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showDescarteModal, setShowDescarteModal] = useState(false);
   const [selectedVacina, setSelectedVacina] = useState(null);
-  
-  // Estados para dados dos formulários de transferência e descarte
   const [transferData, setTransferData] = useState({
     estoqueDestino: "",
     quantidade: "",
@@ -36,10 +27,7 @@ export default function VisualizarEstoque() {
     responsavel: ""
   });
   
-  /**
-   * Lista estática de estoques disponíveis no sistema
-   * Inclui opção "todos" para visualização agregada
-   */
+  // Lista de estoques disponíveis
   const estoques = [
     { id: "todos", nome: "Todos os Estoques", icon: Package },
     { id: "freezer-a1", nome: "Freezer A1", icon: Package },
@@ -50,10 +38,7 @@ export default function VisualizarEstoque() {
     { id: "freezer-c2", nome: "Freezer C2", icon: Package },
   ];
 
-  /**
-   * Dados simulados do estoque de vacinas
-   * Em produção, estes dados viriam de uma API
-   */
+  // Dados simulados do estoque
   const [estoqueData, setEstoqueData] = useState([
     {
       id: 1,
@@ -117,10 +102,6 @@ export default function VisualizarEstoque() {
     }
   ]);
 
-  /**
-   * Retorna classes CSS para estilização baseada no status da vacina
-   * Utiliza gradientes para diferenciação visual clara dos estados
-   */
   const getStatusColor = (status) => {
     switch (status) {
       case "critico":
@@ -134,10 +115,6 @@ export default function VisualizarEstoque() {
     }
   };
 
-  /**
-   * Retorna o ícone apropriado para cada status de vacina
-   * Facilita a identificação visual rápida do estado do produto
-   */
   const getStatusIcon = (status) => {
     switch (status) {
       case "critico":
@@ -151,10 +128,6 @@ export default function VisualizarEstoque() {
     }
   };
 
-  /**
-   * Converte o status em texto legível para o usuário
-   * Padroniza a apresentação textual dos estados
-   */
   const getStatusText = (status) => {
     switch (status) {
       case "critico":
@@ -168,10 +141,6 @@ export default function VisualizarEstoque() {
     }
   };
 
-  /**
-   * Formata o tempo restante em formato legível
-   * Prioriza dias quando disponíveis, senão mostra apenas horas
-   */
   const formatTempoRestante = (tempo) => {
     if (tempo.dias > 0) {
       return `${tempo.dias}d ${tempo.horas}h restantes`;
@@ -179,71 +148,42 @@ export default function VisualizarEstoque() {
     return `${tempo.horas}h restantes`;
   };
 
-  /**
-   * Aplica todos os filtros ativos aos dados do estoque
-   * Combina filtros de busca, status e localização para exibição refinada
-   */
   const filteredEstoque = estoqueData.filter(item => {
-    // Verifica se o termo de busca está presente no nome ou lote da vacina
     const matchesSearch = item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.lote.toLowerCase().includes(searchTerm.toLowerCase());
-    // Aplica filtro de status (todos ou específico)
     const matchesFilter = filterStatus === "todos" || item.status === filterStatus;
-    // Aplica filtro de localização (todos ou estoque específico)
     const matchesEstoque = selectedEstoque === "todos" || item.localizacao === selectedEstoque;
     return matchesSearch && matchesFilter && matchesEstoque;
   });
 
-  /**
-   * Simula atualização dos dados do estoque
-   * Implementa feedback visual durante o carregamento
-   */
   const handleRefresh = () => {
     setIsLoading(true);
-    // Simula delay de requisição à API
     setTimeout(() => {
       setIsLoading(false);
       console.log("Dados atualizados!");
     }, 1000);
   };
 
-  /**
-   * Navega de volta para a página inicial do usuário
-   * Utiliza Next.js Router para navegação programática
-   */
   const voltarHome = () => {
     router.push("/usuario");
     console.log("Voltando para home");
   };
 
-  /**
-   * Determina a cor do texto da temperatura baseada em faixas críticas
-   * Implementa sistema de alerta visual para temperaturas inadequadas
-   */
   const getTemperatureColor = (temp) => {
-    if (temp > -15) return "text-red-600";      // Temperatura crítica (muito alta)
-    if (temp > -18) return "text-yellow-600";   // Temperatura de atenção
-    return "text-green-600";                    // Temperatura adequada
+    if (temp > -15) return "text-red-600";
+    if (temp > -18) return "text-yellow-600";
+    return "text-green-600";
   };
 
-  /**
-   * Abre o modal de ações para uma vacina específica
-   * Centraliza a lógica de seleção e exibição do modal principal
-   */
   const handleVacinaClick = (vacina) => {
     setSelectedVacina(vacina);
     setShowActionModal(true);
   };
 
-  /**
-   * Gerencia as ações disponíveis no modal principal
-   * Redireciona para os modais específicos de transferência ou descarte
-   */
   const handleAction = (action) => {
     setShowActionModal(false);
     
     if (action === 'transferir') {
-      // Pré-popula o formulário de transferência com dados da vacina selecionada
       setTransferData({
         estoqueDestino: "",
         quantidade: selectedVacina.quantidade.toString(),
@@ -252,7 +192,6 @@ export default function VisualizarEstoque() {
       });
       setShowTransferModal(true);
     } else if (action === 'descartar') {
-      // Reseta o formulário de descarte para nova operação
       setDescarteData({
         quantidade: "",
         motivo: "",
@@ -263,58 +202,40 @@ export default function VisualizarEstoque() {
     }
   };
 
-  /**
-   * Processa a transferência de vacinas entre estoques
-   * Valida campos obrigatórios antes de executar a operação
-   */
   const handleTransfer = () => {
-    // Validação de campos obrigatórios
     if (!transferData.estoqueDestino || !transferData.quantidade || !transferData.motivo) {
       alert("Por favor, preencha todos os campos obrigatórios");
       return;
     }
 
-    // Em produção, aqui seria feita a requisição à API
     console.log("Transferência realizada:", {
       vacina: selectedVacina,
       ...transferData
     });
 
-    // Feedback de sucesso e limpeza dos estados
     alert("Vacina transferida com sucesso!");
     setShowTransferModal(false);
     setSelectedVacina(null);
     setTransferData({ estoqueDestino: "", quantidade: "", motivo: "", observacoes: "" });
   };
 
-  /**
-   * Processa o descarte de vacinas do estoque
-   * Implementa validação rigorosa devido à natureza irreversível da operação
-   */
   const handleDescarte = () => {
-    // Validação de todos os campos obrigatórios para descarte
     if (!descarteData.quantidade || !descarteData.motivo || !descarteData.responsavel) {
       alert("Por favor, preencha todos os campos obrigatórios");
       return;
     }
 
-    // Em produção, aqui seria feita a requisição à API
     console.log("Descarte realizado:", {
       vacina: selectedVacina,
       ...descarteData
     });
 
-    // Feedback de sucesso e limpeza dos estados
     alert("Vacina descartada com sucesso!");
     setShowDescarteModal(false);
     setSelectedVacina(null);
     setDescarteData({ quantidade: "", motivo: "", observacoes: "", responsavel: "" });
   };
 
-  /**
-   * Fecha todos os modais e limpa estados relacionados
-   * Centraliza a lógica de limpeza para evitar inconsistências
-   */
   const closeAllModals = () => {
     setShowActionModal(false);
     setShowTransferModal(false);
@@ -322,16 +243,10 @@ export default function VisualizarEstoque() {
     setSelectedVacina(null);
   };
 
-  /**
-   * Calcula estatísticas do estoque baseado no filtro ativo
-   * Fornece dados agregados para os cards de resumo
-   */
   const getEstoqueStats = () => {
-    // Filtra dados baseado na seleção do estoque
     const filtered = selectedEstoque === "todos" ? estoqueData : 
                     estoqueData.filter(item => item.localizacao === selectedEstoque);
     
-    // Calcula contadores por status
     return {
       total: filtered.length,
       normal: filtered.filter(item => item.status === 'normal').length,
@@ -340,7 +255,6 @@ export default function VisualizarEstoque() {
     };
   };
 
-  // Calcula estatísticas para exibição nos cards
   const stats = getEstoqueStats();
 
   return (

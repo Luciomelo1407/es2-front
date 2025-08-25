@@ -15,130 +15,123 @@ import { useAuth } from "../../../hooks/useAuth"; // ajuste o caminho conforme s
 import axios from "axios";
 import { throws } from "assert";
 import { Iestoque, ISala } from "@/types/responseTypes";
+import { parseCookies } from "nookies";
 
-// Tipo que define a estrutura de dados de temperatura por estoque
 type Itemperatura = {
   id: number;
   nome: string;
   temp: string;
   faixa: string;
-}
+};
 
-/**
-* Componente principal da página de controle de temperatura
-* Interface em duas etapas para registro de sala e medições de temperatura dos estoques
-*/
 export default function SalaInfoPage() {
-  // Hook de navegação para redirecionamentos entre páginas
   const router = useRouter();
-  // Hook personalizado para gerenciamento de autenticação do usuário
   const { profissional, loading, error, retry } = useAuth();
-  // Faixa de temperatura padrão para conservação de vacinas
-  const faixa = "2°C a 8°C"
+  const faixa = "2°C a 8°C";
 
-  // Estado para armazenar ID da sala selecionada pelo usuário
   const [salaInfo, setSalaInfo] = useState("");
-  // Estado para gerenciar lista de temperaturas dos estoques
-  const [temperaturas, setTemperaturas] = useState<Itemperatura[] | null>([{ id: -1, nome: "", temp: "", faixa: "" }]);
-  // Estado para controlar qual etapa do formulário está ativa
+  const [temperaturas, setTemperaturas] = useState<Itemperatura[]>([
+    { id: -1, nome: "", temp: "", faixa: "" },
+  ]);
   const [currentStep, setCurrentStep] = useState(1);
 
-  /**
-   * Atualiza o valor de temperatura de um estoque específico
-   * Utiliza imutabilidade para manter integridade do estado
-   */
   const handleTemperaturaChange = (id: number, valor: string) => {
-    // Mapeia array buscando o estoque por ID e atualiza apenas o campo temperatura
     setTemperaturas((prev) =>
       prev.map((est) => (est.id === id ? { ...est, temp: valor } : est)),
     );
   };
 
-  /**
-   * Processa avanço para próxima etapa e busca dados dos estoques da sala
-   * Faz requisição ao backend para obter informações detalhadas da sala
-   */
   const handleNextStep = async () => {
     try {
-      // console.log('DEBUG',profissional?.id)
-      // Requisição POST para criar registro de dia de trabalho
-      // Vincula profissional autenticado à sala selecionada
-      const response = await axios.post("http://localhost:3333/dia-trabalho", {
-        profissionalId: profissional?.id,
-        salaId: salaInfo,
-      });
+      const token = parseCookies().auth_token;
+      const timeout = 100000;
+      const response = await axios.post(
+        "http://localhost:3333/dia-trabalho",
+        {
+          profissionalId: profissional?.id,
+          salaId: salaInfo,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout,
+        },
+      );
 
-      // Extrai dados da resposta da API
-      const sala: ISala = response.data.result.sala
-      const estoques: Iestoque[] = response.data.result.estoques
-      const diaTrabalho = response.data.result.diaTrabalho
-
-      // Transforma dados dos estoques em estrutura apropriada para o componente
-      // Mapeia cada estoque para formato de temperatura com campos vazios
-      const estoqueTemp: Itemperatura[] = []
+      const sala: ISala = response.data.result.sala;
+      const estoques: Iestoque[] = response.data.result.estoques;
+      const diaTrabalho = response.data.result.diaTrabalho;
+      const estoqueTemp: Itemperatura[] = [];
       for (const estoque of estoques) {
         estoqueTemp.push({
           id: estoque.id,
           nome: estoque.tipo,
           temp: "",
-          faixa: "0°C a 8°C"
-        })
+          faixa: "0°C a 8°C",
+        });
       }
-      // Atualiza estado com dados dos estoques obtidos
-      setTemperaturas(estoqueTemp)
-      console.log('DEBUGG:', { sala, estoques, diaTrabalho })
+      setTemperaturas(estoqueTemp);
+      console.log("DEBUGG:", { sala, estoques, diaTrabalho });
 
-      // Verifica resposta e avança para próxima etapa se dados válidos
       if (response.status === 404) {
       }
 
-      // Avança para etapa 2 se sala foi informada corretamente
       if (currentStep === 1 && salaInfo.trim()) {
         setCurrentStep(2);
       }
     } catch (error) {
-      throw error
+      throw error;
     }
   };
-
-  /**
-   * Retorna para etapa anterior (seleção de sala)
-   * Simples alteração de estado do step atual
-   */
   const handlePreviousStep = () => {
     setCurrentStep(1);
   };
 
-  /**
-   * Processa submissão final dos dados coletados
-   * Exibe informações no console e redireciona para página do usuário
-   */
-  const handleSubmit = () => {
-    // Log dos dados coletados para debugging
-    console.log("📍 Sala:", salaInfo);
-    console.log("🌡️ Temperaturas:", temperaturas);
-    console.log("👤 Usuário:", profissional);
+  const handleSubmit = async () => {
+    try {
+      const regTemperaturas = temperaturas.map((temperatura) => {
+        return {
+          estoqueId: temperatura.id,
+          temperatura: temperatura.temp,
+          profissionalId: profissional?.id,
+        };
+      });
 
-    // Feedback visual de sucesso para o usuário
-    alert("Dados salvos com sucesso!");
-    // Redireciona para página principal do usuário
-    router.push("/usuario");
+      console.log("DEBUGG:", regTemperaturas);
+      const cookies = parseCookies();
+      const token = cookies.auth_token;
+      const timeout = 10000;
+
+      const response = await axios.post(
+        "http://localhost:3333/reg-temperatura",
+        regTemperaturas.map((element) => element),
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          timeout,
+        },
+      );
+
+      console.log("📍 Sala:", salaInfo);
+      console.log("🌡️ Temperaturas:", temperaturas);
+      console.log("👤 Usuário:", profissional);
+      alert("Dados salvos com sucesso!");
+      router.push("/usuario");
+    } catch (error) {
+      throw error;
+    }
   };
 
-  // Validações para habilitar/desabilitar botões de navegação
   const isStep1Valid = salaInfo.trim() !== "";
   const isStep2Valid = temperaturas.every((est) => est.temp.trim() !== "");
 
-  /**
-   * Determina status da temperatura baseado na faixa ideal
-   * Retorna 'ok' se dentro da faixa, 'warning' se fora dos parâmetros
-   */
   const getTemperatureStatus = (temp: string, faixa: string) => {
-    // Retorna null se temperatura não foi informada
     if (!temp) return null;
     const tempNum = parseFloat(temp);
 
-    // Verifica diferentes faixas de temperatura conforme o tipo de estoque
     if (faixa.includes("-15°C a -25°C")) {
       return tempNum >= -25 && tempNum <= -15 ? "ok" : "warning";
     } else {
@@ -146,10 +139,7 @@ export default function SalaInfoPage() {
     }
   };
 
-  /**
-   * Tela de carregamento exibida durante verificação de autenticação
-   * Apresenta spinner animado e mensagem informativa
-   */
+  // Tela de loading
   if (loading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 flex items-center justify-center">
@@ -164,10 +154,7 @@ export default function SalaInfoPage() {
     );
   }
 
-  /**
-   * Tela de erro para falhas de autenticação
-   * Oferece opções de retry e redirecionamento para login
-   */
+  // Tela de erro
   if (error) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-red-50 via-red-100 to-red-200 flex items-center justify-center p-6">
@@ -199,20 +186,17 @@ export default function SalaInfoPage() {
     );
   }
 
-  /**
-   * Interface principal do sistema de controle de temperatura
-   * Renderizada apenas quando usuário está autenticado com sucesso
-   */
+  // Página principal (só renderiza se autenticado com sucesso)
   return (
     <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 relative overflow-hidden">
-      {/* Elementos decorativos de background para efeito visual */}
+      {/* Elementos decorativos */}
       <div className="absolute top-20 right-20 w-40 h-40 bg-emerald-200/20 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 left-20 w-60 h-60 bg-teal-200/15 rounded-full blur-3xl"></div>
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-200/10 rounded-full blur-3xl"></div>
 
       <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
         <div className="w-full max-w-2xl">
-          {/* Cabeçalho com informações do sistema e usuário logado */}
+          {/* Header com informações do usuário */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -225,7 +209,6 @@ export default function SalaInfoPage() {
             <p className="text-emerald-600 font-medium mb-2">
               Sistema de Monitoramento de Estoques de Vacina
             </p>
-            {/* Exibe informações do profissional autenticado */}
             {profissional && (
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-2 inline-block">
                 <p className="text-sm text-gray-700">
@@ -236,38 +219,38 @@ export default function SalaInfoPage() {
             )}
           </div>
 
-          {/* Barra de progresso visual das etapas */}
+          {/* Progress Bar */}
           <div className="flex items-center justify-center mb-8">
             <div className="flex items-center space-x-4">
-              {/* Indicador da etapa 1 com estado dinâmico */}
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${currentStep >= 1
-                  ? "bg-emerald-500 text-white"
-                  : "bg-gray-200 text-gray-500"
-                  }`}
+                className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                  currentStep >= 1
+                    ? "bg-emerald-500 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
               >
                 1
               </div>
-              {/* Linha de conexão entre etapas */}
               <div
-                className={`w-16 h-1 rounded ${currentStep >= 2 ? "bg-emerald-500" : "bg-gray-200"
-                  }`}
+                className={`w-16 h-1 rounded ${
+                  currentStep >= 2 ? "bg-emerald-500" : "bg-gray-200"
+                }`}
               ></div>
-              {/* Indicador da etapa 2 com estado dinâmico */}
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${currentStep >= 2
-                  ? "bg-emerald-500 text-white"
-                  : "bg-gray-200 text-gray-500"
-                  }`}
+                className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                  currentStep >= 2
+                    ? "bg-emerald-500 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
               >
                 2
               </div>
             </div>
           </div>
 
-          {/* Container principal do formulário */}
+          {/* Card Principal */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border-0 overflow-hidden">
-            {/* ETAPA 1: Formulário para seleção da sala de trabalho */}
+            {/* ETAPA 1: Informações da Sala */}
             {currentStep === 1 && (
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-6">
@@ -286,7 +269,6 @@ export default function SalaInfoPage() {
                       <Shield className="w-4 h-4" />
                       Sala/Setor de Trabalho
                     </label>
-                    {/* Campo de entrada para ID da sala */}
                     <input
                       id="sala-input"
                       type="number"
@@ -302,7 +284,6 @@ export default function SalaInfoPage() {
                     </p>
                   </div>
 
-                  {/* Confirmação visual da sala selecionada */}
                   {salaInfo && (
                     <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg animate-in slide-in-from-top-2 duration-300">
                       <div className="flex items-center gap-2">
@@ -315,7 +296,6 @@ export default function SalaInfoPage() {
                     </div>
                   )}
 
-                  {/* Informações sobre próximos passos */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h3 className="text-sm font-medium text-blue-800 mb-2">
                       ℹ️ Próximos passos:
@@ -331,7 +311,6 @@ export default function SalaInfoPage() {
                   </div>
                 </div>
 
-                {/* Botão para avançar para próxima etapa */}
                 <div className="flex justify-end mt-8">
                   <button
                     onClick={handleNextStep}
@@ -345,7 +324,7 @@ export default function SalaInfoPage() {
               </div>
             )}
 
-            {/* ETAPA 2: Formulário para registro de temperaturas dos estoques */}
+            {/* ETAPA 2: Temperaturas */}
             {currentStep === 2 && (
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-6">
@@ -361,11 +340,9 @@ export default function SalaInfoPage() {
                 </div>
 
                 <div className="space-y-6">
-                  {/* Mapeamento dos estoques para campos de temperatura */}
                   {temperaturas.map((estoque, index) => (
                     <div key={estoque.id} className="space-y-3">
                       <div className="flex items-center gap-3">
-                        {/* Identificador visual do estoque */}
                         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">
                           {estoque.id}
                         </div>
@@ -381,7 +358,6 @@ export default function SalaInfoPage() {
 
                       <div className="ml-11 space-y-2">
                         <div className="flex items-center gap-3">
-                          {/* Campo de entrada para temperatura */}
                           <input
                             type="number"
                             step="0.1"
@@ -400,35 +376,28 @@ export default function SalaInfoPage() {
                           </span>
                         </div>
 
-                        {/* Indicador visual do status da temperatura */}
                         {estoque.temp && (
                           <div
-                            className={`text-xs px-2 py-1 rounded ${getTemperatureStatus(
-                              estoque.temp,
-                              faixa,
-                            ) === "ok"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-amber-50 text-amber-700 border border-amber-200"
-                              }`}
+                            className={`text-xs px-2 py-1 rounded ${
+                              getTemperatureStatus(estoque.temp, faixa) === "ok"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-amber-50 text-amber-700 border border-amber-200"
+                            }`}
                           >
-                            {getTemperatureStatus(
-                              estoque.temp,
-                              faixa,
-                            ) === "ok"
+                            {getTemperatureStatus(estoque.temp, faixa) === "ok"
                               ? "✓ Temperatura adequada"
                               : "⚠️ Verificar temperatura - fora da faixa ideal"}
                           </div>
                         )}
                       </div>
 
-                      {/* Divisor entre estoques */}
                       {index < temperaturas.length - 1 && (
                         <hr className="ml-11 border-gray-100" />
                       )}
                     </div>
                   ))}
 
-                  {/* Resumo consolidado das temperaturas informadas */}
+                  {/* Resumo */}
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 ml-11">
                     <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                       📊 Resumo das Temperaturas
@@ -443,13 +412,14 @@ export default function SalaInfoPage() {
                             Estoque {est.id}:
                           </span>
                           <span
-                            className={`font-mono px-2 py-1 rounded ${est.temp
-                              ? getTemperatureStatus(est.temp, est.faixa) ===
-                                "ok"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-amber-100 text-amber-700"
-                              : "bg-gray-100 text-gray-500"
-                              }`}
+                            className={`font-mono px-2 py-1 rounded ${
+                              est.temp
+                                ? getTemperatureStatus(est.temp, est.faixa) ===
+                                  "ok"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-amber-100 text-amber-700"
+                                : "bg-gray-100 text-gray-500"
+                            }`}
                           >
                             {est.temp ? `${est.temp}°C` : "-- °C"}
                           </span>
@@ -459,9 +429,7 @@ export default function SalaInfoPage() {
                   </div>
                 </div>
 
-                {/* Botões de navegação da etapa 2 */}
                 <div className="flex justify-between items-center mt-8">
-                  {/* Botão para retornar à etapa anterior */}
                   <button
                     onClick={handlePreviousStep}
                     className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
@@ -469,7 +437,6 @@ export default function SalaInfoPage() {
                     ← Voltar para Sala
                   </button>
 
-                  {/* Botão para finalizar e submeter dados */}
                   <button
                     onClick={handleSubmit}
                     disabled={!isStep2Valid}
@@ -483,7 +450,7 @@ export default function SalaInfoPage() {
             )}
           </div>
 
-          {/* Rodapé com identificação do sistema */}
+          {/* Footer */}
           <div className="text-center mt-6 text-sm text-gray-500">
             Sistema de Gestão de Vacinação • Controle de Temperatura
           </div>
