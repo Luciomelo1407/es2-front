@@ -231,7 +231,6 @@ export default function InserirVacinaPage() {
       };
 
       setTouched(allTouched);
-      console.log("DEBUG:", formData);
       return;
     }
 
@@ -249,7 +248,8 @@ export default function InserirVacinaPage() {
       // Aguardar um pouco para o usuário ver a mensagem de sucesso
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Redirecionar para a página do usuário
+      const response = await axios.post("http://localhost/vacina", {});
+
       // navigateTo("/usuario");
     } catch (error) {
       console.error("Erro ao submeter:", error);
