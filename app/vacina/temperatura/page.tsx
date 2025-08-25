@@ -3,92 +3,140 @@ import { useState, useEffect } from "react";
 import { Home, Plus, User, Check, AlertCircle, Clock, Calendar, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+/**
+* Componente para registro de temperaturas de estoque
+* Permite aos usuários registrar medições de temperatura com validação e feedback
+*/
 export default function RegistroTemperatura() {
-  const router = useRouter();
-  
-  const [data, setData] = useState("");
-  const [hora, setHora] = useState("");
-  const [estoque, setEstoque] = useState("");
-  const [temperatura, setTemperatura] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [errors, setErrors] = useState({});
+ // Hook de navegação do Next.js para redirecionamento entre páginas
+ const router = useRouter();
+ 
+ // Estados para controle dos campos do formulário
+ const [data, setData] = useState("");
+ const [hora, setHora] = useState("");
+ const [estoque, setEstoque] = useState("");
+ const [temperatura, setTemperatura] = useState("");
+ 
+ // Estados para controle da interface e feedback do usuário
+ const [isSubmitting, setIsSubmitting] = useState(false);
+ const [showSuccess, setShowSuccess] = useState(false);
+ const [errors, setErrors] = useState({});
 
-  // Auto-preenchimento da data e hora atual
-  useEffect(() => {
-    const now = new Date();
-    const dataAtual = now.toLocaleDateString('pt-BR');
-    const horaAtual = now.toLocaleTimeString('pt-BR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-    
-    setData(dataAtual);
-    setHora(horaAtual);
-  }, []);
+ /**
+  * Inicializa automaticamente os campos de data e hora
+  * Executa apenas na montagem do componente para melhor UX
+  */
+ useEffect(() => {
+   // Obtém a data e hora atual do sistema
+   const now = new Date();
+   
+   // Formata a data no padrão brasileiro (dd/mm/yyyy)
+   const dataAtual = now.toLocaleDateString('pt-BR');
+   
+   // Formata a hora no formato 24h com apenas horas e minutos
+   const horaAtual = now.toLocaleTimeString('pt-BR', { 
+     hour: '2-digit', 
+     minute: '2-digit' 
+   });
+   
+   // Define os valores iniciais nos estados
+   setData(dataAtual);
+   setHora(horaAtual);
+ }, []);
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!estoque.trim()) {
-      newErrors.estoque = "Campo obrigatório";
-    }
-    
-    if (!temperatura.trim()) {
-      newErrors.temperatura = "Campo obrigatório";
-    } else if (isNaN(temperatura) || temperatura < -50 || temperatura > 100) {
-      newErrors.temperatura = "Temperatura deve estar entre -50°C e 100°C";
-    }
+ /**
+  * Valida os dados do formulário antes do envio
+  * Implementa regras de negócio para campos obrigatórios e limites de temperatura
+  */
+ const validateForm = () => {
+   const newErrors = {};
+   
+   // Validação do campo estoque - verifica se não está vazio
+   if (!estoque.trim()) {
+     newErrors.estoque = "Campo obrigatório";
+   }
+   
+   // Validação complexa do campo temperatura
+   if (!temperatura.trim()) {
+     newErrors.temperatura = "Campo obrigatório";
+   } else if (isNaN(temperatura) || temperatura < -50 || temperatura > 100) {
+     // Verifica se é número válido e está dentro da faixa aceitável
+     newErrors.temperatura = "Temperatura deve estar entre -50°C e 100°C";
+   }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+   // Atualiza o estado de erros e retorna resultado da validação
+   setErrors(newErrors);
+   return Object.keys(newErrors).length === 0;
+ };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      return;
-    }
+ /**
+  * Processa o envio do formulário de registro de temperatura
+  * Inclui validação, simulação de requisição e feedback visual
+  */
+ const handleSubmit = async () => {
+   // Interrompe o processo se a validação falhar
+   if (!validateForm()) {
+     return;
+   }
 
-    setIsSubmitting(true);
-    
-    // Simulando uma requisição
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log("Dados enviados:", { data, hora, estoque, temperatura });
-      
-      setShowSuccess(true);
-      setEstoque("");
-      setTemperatura("");
-      setErrors({});
-      
-      // Remove a mensagem de sucesso após 3 segundos
-      setTimeout(() => setShowSuccess(false), 3000);
-      
-    } catch (error) {
-      console.error("Erro ao registrar:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+   // Ativa o estado de carregamento para desabilitar múltiplos envios
+   setIsSubmitting(true);
+   
+   // Simula uma requisição HTTP para o backend
+   try {
+     // Delay artificial para simular tempo de resposta da API
+     await new Promise(resolve => setTimeout(resolve, 1000));
+     
+     // Log dos dados que seriam enviados para a API
+     console.log("Dados enviados:", { data, hora, estoque, temperatura });
+     
+     // Resetia o formulário e exibe feedback de sucesso
+     setShowSuccess(true);
+     setEstoque("");
+     setTemperatura("");
+     setErrors({});
+     
+     // Remove automaticamente a mensagem de sucesso após 3 segundos
+     setTimeout(() => setShowSuccess(false), 3000);
+     
+   } catch (error) {
+     // Tratamento de erro para falhas na requisição
+     console.error("Erro ao registrar:", error);
+   } finally {
+     // Sempre desativa o estado de carregamento, independente do resultado
+     setIsSubmitting(false);
+   }
+ };
 
-  const handleVoltar = () => {
-    router.push("/usuario");
-    console.log("Voltando para página anterior");
-  };
+ /**
+  * Navega de volta para a página do usuário
+  * Implementa funcionalidade de voltar com log para debug
+  */
+ const handleVoltar = () => {
+   router.push("/usuario");
+   console.log("Voltando para página anterior");
+ };
 
-  const voltarHome = () => {
-    router.push("/usuario");
-    console.log("Voltando para home");
-  };
+ /**
+  * Navega para a página inicial do usuário
+  * Funcionalidade duplicada para diferentes contextos de navegação
+  */
+ const voltarHome = () => {
+   router.push("/usuario");
+   console.log("Voltando para home");
+ };
 
-  const formatTemperature = (value) => {
-    // Remove caracteres não numéricos exceto pontos e vírgulas
-    const cleaned = value.replace(/[^\d.,-]/g, '');
-    return cleaned;
-  };
+ /**
+  * Formata o input de temperatura removendo caracteres inválidos
+  * Permite apenas números, pontos e vírgulas para flexibilidade de entrada
+  */
+ const formatTemperature = (value) => {
+   // Remove todos os caracteres exceto dígitos, pontos e vírgulas
+   const cleaned = value.replace(/[^\d.,-]/g, '');
+   return cleaned;
+ };
 
-  return (
+ return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-emerald-50">
       {/* Header melhorado */}
       <div className="bg-white shadow-sm p-4 flex items-center justify-between sticky top-0 z-10">

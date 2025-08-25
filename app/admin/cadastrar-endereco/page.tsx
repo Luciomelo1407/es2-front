@@ -17,10 +17,8 @@ import { useRouter } from 'next/navigation';
 const CadastroEndereco = () => {
   const router = useRouter();
   
-  /**
-   * Estado para armazenar todos os dados de endereço do usuário
-   * Contém todos os campos necessários para o endereço completo
-   */
+  // Estado principal para gerenciar todos os campos de endereço em um único objeto
+  // Decisão de implementação: centralizar os dados para facilitar validação e envio
   const [enderecoData, setEnderecoData] = useState({
     cep: '',
     estado: '',
@@ -31,30 +29,29 @@ const CadastroEndereco = () => {
     complemento: ''
   });
 
-  /**
-   * Estado para armazenar os dados do usuário vindos da tela anterior
-   */
+  // Estado para armazenar dados do usuário vindos da etapa anterior do cadastro
+  // Utiliza null para permitir loading state enquanto carrega do localStorage
   const [dadosUsuario, setDadosUsuario] = useState(null);
 
   /**
-   * Hook para carregar os dados do usuário salvos na tela anterior
-   * Executa apenas uma vez quando o componente é montado
+   * Carrega os dados do usuário salvos na etapa anterior do formulário
+   * Executa validação de integridade dos dados e redireciona se necessário
    */
   useEffect(() => {
+    // Recupera dados do localStorage para manter fluxo multi-etapa
     const dadosSalvos = localStorage.getItem('dadosUsuario');
     if (dadosSalvos) {
       setDadosUsuario(JSON.parse(dadosSalvos));
     } else {
-      // Se não há dados do usuário, redireciona para a tela de cadastro
+      // Proteção contra acesso direto à página sem completar etapa anterior
       alert('Dados do usuário não encontrados. Redirecionando para o cadastro.');
       router.push('/admin/cadastrar-usuario');
     }
   }, [router]);
 
   /**
-   * Função para atualizar um campo específico do endereço
-   * @param {string} field - Nome do campo a ser atualizado
-   * @param {string} value - Novo valor para o campo
+   * Atualiza um campo específico do endereço mantendo imutabilidade do estado
+   * Utiliza spread operator para preservar outros campos durante atualização
    */
   const handleInputChange = (field, value) => {
     setEnderecoData(prev => ({
@@ -64,25 +61,28 @@ const CadastroEndereco = () => {
   };
 
   /**
-   * Função para buscar dados do endereço automaticamente pelo CEP
-   * Integra com API de CEP para preencher campos automaticamente
-   * @param {string} cep - CEP digitado pelo usuário
+   * Busca automaticamente dados do endereço através da API ViaCEP
+   * Implementa preenchimento automático para melhorar experiência do usuário
    */
   const handleCepChange = async (cep) => {
     setEnderecoData(prev => ({ ...prev, cep }));
     
-    // Remove caracteres não numéricos do CEP
+    // Sanitização do CEP removendo caracteres não numéricos
+    // Decisão: permite entrada formatada mas processa apenas números
     const cleanCep = cep.replace(/\D/g, '');
     
+    // Valida comprimento padrão do CEP brasileiro antes de fazer requisição
     if (cleanCep.length === 8) {
       try {
         console.log('Buscando dados do CEP:', cleanCep);
         
-        // Exemplo de integração com ViaCEP
+        // Integração com API pública ViaCEP para preenchimento automático
+        // Escolha da ViaCEP: gratuita, confiável e específica para CEPs brasileiros
         const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
         const data = await response.json();
         
         if (!data.erro) {
+          // Atualiza apenas campos retornados pela API, preserva dados já inseridos
           setEnderecoData(prev => ({
             ...prev,
             estado: data.uf,
@@ -94,6 +94,7 @@ const CadastroEndereco = () => {
           alert('CEP não encontrado. Por favor, verifique o número digitado.');
         }
       } catch (error) {
+        // Tratamento robusto de erros de rede ou parsing
         console.error('Erro ao buscar CEP:', error);
         alert('Erro ao buscar dados do CEP. Tente novamente.');
       }
@@ -101,18 +102,19 @@ const CadastroEndereco = () => {
   };
 
   /**
-   * Função para validar se todos os campos obrigatórios do endereço foram preenchidos
-   * @returns {boolean} - True se todos os campos obrigatórios estão preenchidos
+   * Valida completude dos campos obrigatórios antes do envio
+   * Implementa validação client-side para feedback imediato ao usuário
    */
   const validateEnderecoForm = () => {
     const { cep, estado, cidade, bairro, rua, numero } = enderecoData;
     
+    // Validação de campos obrigatórios baseada nos requisitos de endereço completo
     if (!cep || !estado || !cidade || !bairro || !rua || !numero) {
       alert('Por favor, preencha todos os campos obrigatórios do endereço.');
       return false;
     }
     
-    // Validação do CEP
+    // Validação específica do formato do CEP brasileiro (8 dígitos)
     const cepNumbers = cep.replace(/\D/g, '');
     if (cepNumbers.length !== 8) {
       alert('Por favor, insira um CEP válido.');
@@ -123,11 +125,13 @@ const CadastroEndereco = () => {
   };
 
   /**
-   * Função para processar o cadastro completo do usuário
-   * Combina os dados pessoais e de endereço e finaliza o cadastro
+   * Finaliza o cadastro combinando dados pessoais e de endereço
+   * Executa validação, merge de dados e limpeza do estado temporário
    */
   const handleFinalizarCadastro = async () => {
     if (validateEnderecoForm()) {
+      // Combina dados de ambas as etapas em objeto completo
+      // Adiciona timestamp para auditoria e controle
       const dadosCompletos = {
         ...dadosUsuario,
         endereco: enderecoData,
@@ -137,19 +141,20 @@ const CadastroEndereco = () => {
       console.log('Dados completos do usuário:', dadosCompletos);
       
       try {
-        // Aqui seria feita a chamada para a API de cadastro
+        // TODO: Implementar chamada real para API de cadastro
         // const response = await fetch('/api/usuarios', {
         //   method: 'POST',
         //   headers: { 'Content-Type': 'application/json' },
         //   body: JSON.stringify(dadosCompletos)
         // });
         
-        // Limpa os dados temporários do localStorage
+        // Limpeza dos dados temporários após sucesso
+        // Previne reuso indevido e libera memória
         localStorage.removeItem('dadosUsuario');
         
         alert('Usuário cadastrado com sucesso!');
         
-        // Redireciona para o menu principal do admin
+        // Redireciona para painel principal após conclusão
         router.push('/admin');
         
       } catch (error) {
@@ -160,16 +165,15 @@ const CadastroEndereco = () => {
   };
 
   /**
-   * Função para voltar à tela de dados pessoais
-   * Preserva os dados já preenchidos para edição
+   * Navega de volta para etapa anterior preservando contexto
+   * Permite edição dos dados pessoais sem perder progresso atual
    */
   const handleVoltar = () => {
     router.push('/admin/cadastrar-usuario');
   };
 
-  /**
-   * Lista dos estados brasileiros para o select
-   */
+  // Lista estática dos estados brasileiros para componente Select
+  // Decisão: dados estáticos por serem estáveis e evitar requisições desnecessárias
   const estadosBrasil = [
     { value: 'AC', label: 'Acre' },
     { value: 'AL', label: 'Alagoas' },
@@ -200,7 +204,8 @@ const CadastroEndereco = () => {
     { value: 'TO', label: 'Tocantins' }
   ];
 
-  // Loading state enquanto carrega os dados do usuário
+  // Renderização condicional de loading enquanto carrega dados do usuário
+  // Melhora UX evitando flash de conteúdo e erros de renderização
   if (!dadosUsuario) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
@@ -214,7 +219,7 @@ const CadastroEndereco = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header */}
+      {/* Header fixo com identificação de contexto administrativo */}
       <div className="bg-emerald-400 shadow-sm px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center space-x-3">
@@ -229,15 +234,16 @@ const CadastroEndereco = () => {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Container principal com largura responsiva */}
       <div className="max-w-4xl mx-auto px-6 py-8">
-        {/* Progress Indicator */}
+        {/* Indicador de progresso multi-etapa para orientação do usuário */}
         <div className="flex items-center justify-between mb-8">
           <span className="text-sm text-gray-500">Progresso do formulário</span>
           <span className="text-sm text-gray-400">Etapa 2 de 2 - Endereço</span>
         </div>
 
-        {/* User Info Card */}
+        {/* Card de confirmação dos dados da etapa anterior */}
+        {/* Fornece contexto e confiança ao usuário sobre dados já salvos */}
         <div className="bg-white rounded-lg p-4 mb-6 border border-gray-200">
           <div className="flex items-center text-sm text-gray-600">
             <CheckCircle className="h-4 w-4 text-emerald-500 mr-2" />
@@ -245,7 +251,7 @@ const CadastroEndereco = () => {
           </div>
         </div>
 
-        {/* Form Card */}
+        {/* Formulário principal com design consistente */}
         <Card className="bg-emerald-400 border-0 shadow-xl rounded-3xl">
           <CardHeader className="bg-emerald-400 rounded-t-3xl pb-6 pt-8">
             <CardTitle className="text-center text-2xl font-bold text-slate-800 mb-2 flex items-center justify-center">
@@ -255,7 +261,7 @@ const CadastroEndereco = () => {
           </CardHeader>
           
           <CardContent className="bg-emerald-400 px-8 pb-8 space-y-6">
-            {/* CEP */}
+            {/* Campo CEP com funcionalidade de busca automática */}
             <div className="flex items-center space-x-4">
               <Label className="text-slate-800 font-medium min-w-[120px] text-right">
                 cep: *
@@ -269,7 +275,7 @@ const CadastroEndereco = () => {
               />
             </div>
 
-            {/* Estado */}
+            {/* Select de estados com dados pré-carregados */}
             <div className="flex items-center space-x-4">
               <Label className="text-slate-800 font-medium min-w-[120px] text-right">
                 estado: *
@@ -291,7 +297,7 @@ const CadastroEndereco = () => {
               </Select>
             </div>
 
-            {/* Cidade */}
+            {/* Campos de endereço com preenchimento automático via CEP */}
             <div className="flex items-center space-x-4">
               <Label className="text-slate-800 font-medium min-w-[120px] text-right">
                 cidade: *
@@ -304,7 +310,6 @@ const CadastroEndereco = () => {
               />
             </div>
 
-            {/* Bairro */}
             <div className="flex items-center space-x-4">
               <Label className="text-slate-800 font-medium min-w-[120px] text-right">
                 bairro: *
@@ -317,7 +322,6 @@ const CadastroEndereco = () => {
               />
             </div>
 
-            {/* Rua */}
             <div className="flex items-center space-x-4">
               <Label className="text-slate-800 font-medium min-w-[120px] text-right">
                 rua: *
@@ -330,7 +334,7 @@ const CadastroEndereco = () => {
               />
             </div>
 
-            {/* Número */}
+            {/* Campo número com largura reduzida para otimizar layout */}
             <div className="flex items-center space-x-4">
               <Label className="text-slate-800 font-medium min-w-[120px] text-right">
                 número: *
@@ -343,7 +347,7 @@ const CadastroEndereco = () => {
               />
             </div>
 
-            {/* Complemento */}
+            {/* Campo opcional para informações adicionais */}
             <div className="flex items-center space-x-4">
               <Label className="text-slate-800 font-medium min-w-[120px] text-right">
                 complemento:
@@ -356,7 +360,8 @@ const CadastroEndereco = () => {
               />
             </div>
 
-            {/* Action Buttons */}
+            {/* Botões de ação com posicionamento justificado */}
+            {/* Permite navegação bidirecional no fluxo multi-etapa */}
             <div className="flex justify-between mt-8 px-4">
               <Button
                 onClick={handleVoltar}

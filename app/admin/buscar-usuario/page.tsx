@@ -1,5 +1,4 @@
-'use client' //Não tire, vai parar de funcionar. 
-'use client' //Não tire, vai parar de funcionar. 
+'use client' // Diretiva necessária para componentes client-side no Next.js 13+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,37 +10,27 @@ import { useRouter } from 'next/navigation';
 const AlterarUsuarioBusca = () => {
   const router = useRouter();
   
-  /**
-   * Estado para armazenar os filtros de busca
-   * Permite buscar usuários por nome e/ou COREN
-   */
+  // Estado para controlar critérios de filtragem da busca
+  // Implementado como objeto para facilitar adição de novos filtros
   const [filtros, setFiltros] = useState({
     nome: '',
     coren: ''
   });
 
-  /**
-   * Estado para armazenar os resultados da busca
-   * Lista de usuários encontrados conforme os filtros aplicados
-   */
+  // Estado para armazenar usuários encontrados na busca
+  // Lista dinâmica baseada nos filtros aplicados
   const [resultadoBusca, setResultadoBusca] = useState([]);
 
-  /**
-   * Estado para controlar se uma busca foi realizada
-   * Usado para mostrar/ocultar a seção de resultados
-   */
+  // Estado para controlar exibição da seção de resultados
+  // Evita mostrar área vazia antes da primeira busca
   const [buscaRealizada, setBuscaRealizada] = useState(false);
 
-  /**
-   * Estado para controlar o loading durante a busca
-   * Mostra indicador de carregamento enquanto pesquisa
-   */
+  // Estado para feedback visual durante operações de busca
+  // Melhora UX com indicador de carregamento
   const [carregandoBusca, setCarregandoBusca] = useState(false);
 
-  /**
-   * Dados simulados de usuários para demonstração
-   * Em produção, estes dados viriam de uma API/banco de dados
-   */
+  // Base de dados simulada para desenvolvimento e demonstração
+  // Em produção seria substituída por chamadas à API de usuários
   const usuariosMock = [
     {
       id: 1,
@@ -100,9 +89,8 @@ const AlterarUsuarioBusca = () => {
   ];
 
   /**
-   * Função para atualizar os campos de filtro
-   * @param {string} campo - Nome do campo a ser atualizado
-   * @param {string} valor - Novo valor para o campo
+   * Atualiza campos de filtro mantendo imutabilidade do estado
+   * Implementa padrão genérico reutilizável para qualquer filtro
    */
   const handleFiltroChange = (campo, valor) => {
     setFiltros(prev => ({
@@ -112,26 +100,26 @@ const AlterarUsuarioBusca = () => {
   };
 
   /**
-   * Função para realizar a busca de usuários
-   * Filtra usuários baseado nos critérios informados (nome e/ou COREN)
+   * Executa busca de usuários baseada nos filtros informados
+   * Implementa busca combinada por nome e/ou COREN com simulação de API
    */
   const handleBuscarUsuarios = async () => {
     setCarregandoBusca(true);
     
     try {
-      // Simula delay de API
+      // Simulação de delay de API para UX realista
       await new Promise(resolve => setTimeout(resolve, 800));
       
       let resultados = usuariosMock;
       
-      // Filtrar por nome se informado
+      // Aplicação de filtro por nome com busca case-insensitive
       if (filtros.nome.trim()) {
         resultados = resultados.filter(usuario =>
           usuario.nomeCompleto.toLowerCase().includes(filtros.nome.toLowerCase())
         );
       }
       
-      // Filtrar por COREN se informado
+      // Aplicação de filtro por COREN com busca parcial
       if (filtros.coren.trim()) {
         resultados = resultados.filter(usuario =>
           usuario.coren.toLowerCase().includes(filtros.coren.toLowerCase())
@@ -143,6 +131,7 @@ const AlterarUsuarioBusca = () => {
       
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
+      // Feedback de erro simples - em produção usar sistema de notificações
       alert('Erro ao buscar usuários. Tente novamente.');
     } finally {
       setCarregandoBusca(false);
@@ -150,31 +139,30 @@ const AlterarUsuarioBusca = () => {
   };
 
   /**
-   * Função para selecionar um usuário e prosseguir para edição
-   * Salva os dados do usuário selecionado e navega para a tela de edição
-   * @param {Object} usuario - Dados do usuário selecionado
+   * Processa seleção de usuário e inicia fluxo de edição
+   * Persiste dados no localStorage e navega para primeira etapa de edição
    */
   const handleSelecionarUsuario = (usuario) => {
     console.log('Usuário selecionado para alteração:', usuario);
     
-    // Salva os dados do usuário no localStorage para edição
+    // Persistência temporária para manter dados durante navegação multi-etapas
     localStorage.setItem('usuarioParaAlterar', JSON.stringify(usuario));
     
-    // Navega para a tela de edição de dados pessoais
+    // Navegação para primeira etapa do processo de edição
     router.push('/admin/alterar-usuario');
   };
 
   /**
-   * Função para voltar ao menu principal do admin
-   * Retorna à página inicial do painel administrativo
+   * Executa navegação de retorno para menu administrativo
+   * Mantém fluxo consistente de navegação do sistema
    */
   const handleVoltar = () => {
     router.push('/admin');
   };
 
   /**
-   * Função para limpar os filtros e resultados
-   * Reseta o formulário de busca para o estado inicial
+   * Reseta formulário de busca para estado inicial
+   * Limpa filtros e resultados para nova pesquisa
    */
   const handleLimparFiltros = () => {
     setFiltros({ nome: '', coren: '' });
@@ -185,7 +173,7 @@ const AlterarUsuarioBusca = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-50 flex items-center justify-center p-6">
       <div className="w-full max-w-4xl">
-        {/* Header */}
+        {/* Header com branding e contexto da funcionalidade */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-500 rounded-2xl mb-6 shadow-lg">
             <Search className="h-10 w-10 text-white" />
@@ -198,7 +186,7 @@ const AlterarUsuarioBusca = () => {
           </p>
         </div>
 
-        {/* Search Card */}
+        {/* Card de busca com design glassmorphism */}
         <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0 rounded-3xl mb-8">
           <CardHeader className="pb-6 pt-8">
             <CardTitle className="text-center text-xl text-slate-700 font-medium flex items-center justify-center">
@@ -209,7 +197,7 @@ const AlterarUsuarioBusca = () => {
           
           <CardContent className="px-8 pb-8">
             <div className="space-y-6">
-              {/* Nome */}
+              {/* Campo de busca por nome */}
               <div className="space-y-2">
                 <Label className="text-slate-700 font-medium text-sm">
                   Nome do usuário
@@ -222,7 +210,7 @@ const AlterarUsuarioBusca = () => {
                 />
               </div>
 
-              {/* COREN */}
+              {/* Campo de busca por COREN */}
               <div className="space-y-2">
                 <Label className="text-slate-700 font-medium text-sm">
                   COREN
@@ -235,7 +223,7 @@ const AlterarUsuarioBusca = () => {
                 />
               </div>
 
-              {/* Botões de Ação */}
+              {/* Área de ações com validação condicional */}
               <div className="flex justify-center space-x-4 pt-4">
                 <Button
                   onClick={handleBuscarUsuarios}
@@ -255,6 +243,7 @@ const AlterarUsuarioBusca = () => {
                   )}
                 </Button>
                 
+                {/* Botão de limpeza condicional baseado no estado */}
                 {(filtros.nome || filtros.coren || buscaRealizada) && (
                   <Button
                     onClick={handleLimparFiltros}
@@ -269,7 +258,7 @@ const AlterarUsuarioBusca = () => {
           </CardContent>
         </Card>
 
-        {/* Resultados da Busca */}
+        {/* Seção de resultados renderizada condicionalmente */}
         {buscaRealizada && (
           <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0 rounded-3xl mb-8">
             <CardHeader className="pb-6 pt-8">
@@ -281,6 +270,7 @@ const AlterarUsuarioBusca = () => {
             
             <CardContent className="px-8 pb-8">
               {resultadoBusca.length === 0 ? (
+                // Estado vazio com orientações para o usuário
                 <div className="text-center py-8">
                   <Users className="h-16 w-16 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-slate-600 mb-2">
@@ -291,6 +281,7 @@ const AlterarUsuarioBusca = () => {
                   </p>
                 </div>
               ) : (
+                // Lista de usuários com interatividade e feedback visual
                 <div className="space-y-4">
                   {resultadoBusca.map((usuario) => (
                     <div
@@ -298,9 +289,11 @@ const AlterarUsuarioBusca = () => {
                       onClick={() => handleSelecionarUsuario(usuario)}
                       className="flex items-center p-6 bg-slate-50 hover:bg-emerald-50 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-md border border-slate-200 hover:border-emerald-200 group"
                     >
+                      {/* Avatar com feedback visual de grupo */}
                       <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center mr-4 group-hover:bg-emerald-600 transition-colors">
                         <User className="h-6 w-6 text-white" />
                       </div>
+                      {/* Informações do usuário organizadas hierarquicamente */}
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-slate-800 group-hover:text-emerald-700 mb-1">
                           {usuario.nomeCompleto}
@@ -312,6 +305,7 @@ const AlterarUsuarioBusca = () => {
                           {usuario.email}
                         </p>
                       </div>
+                      {/* Indicador de ação com feedback visual */}
                       <div className="flex items-center text-slate-400 group-hover:text-emerald-500 transition-colors">
                         <Edit3 className="h-5 w-5 mr-2" />
                         <span className="text-sm font-medium">Alterar</span>
@@ -324,7 +318,7 @@ const AlterarUsuarioBusca = () => {
           </Card>
         )}
 
-        {/* Botão Voltar */}
+        {/* Botão de navegação para retorno */}
         <div className="flex justify-center">
           <Button
             onClick={handleVoltar}
