@@ -117,7 +117,7 @@ export default function InserirVacinaPage() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [touched, setTouched] = useState<IVacinaFrom>();
+  const [touched, setTouched] = useState({});
   const [sala, setSala] = useState<ISala | null>(null);
   const [estoques, setEstoques] = useState<Iestoque[] | null>(null);
 
@@ -229,8 +229,8 @@ export default function InserirVacinaPage() {
         quantidadeDoses: formData.quantidadeDoses,
         tipoImunobiologico: formData.tipoImunobiologico,
       };
-
       setTouched(allTouched);
+
       return;
     }
 
@@ -243,14 +243,35 @@ export default function InserirVacinaPage() {
       console.log("Dados do formulário:", formData);
 
       // Mostrar mensagem de sucesso
-      setShowSuccess(true);
 
+      setShowSuccess(true);
       // Aguardar um pouco para o usuário ver a mensagem de sucesso
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      const response = await axios.post("http://localhost/vacina", {});
+      const timeout = 10000;
+      const token = parseCookies().auth_token;
 
-      // navigateTo("/usuario");
+      const response = await axios.post(
+        "http://localhost:3333/vacina",
+        {
+          codLote: formData.lote,
+          validade: formData.validade,
+          sigla: formData.sigla,
+          nome: formData.nomeImunobiologico,
+          tipo: formData.tipoImunobiologico,
+          fabricante: formData.fabricante,
+          doses: formData.quantidadeDoses,
+          quantidade: formData.quantidade,
+          estoqueId: formData.estoqueInserido,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout,
+        },
+      );
+      navigateTo("/usuario");
     } catch (error) {
       console.error("Erro ao submeter:", error);
     } finally {
