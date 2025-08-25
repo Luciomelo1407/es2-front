@@ -52,7 +52,6 @@ export const useAuth = (options: UseAuthOptions = {}): UseAuthReturn => {
         timeout,
       });
       const profissional: IProfissional = response.data.result;
-      console.log("DEBUG:", profissional);
 
       if (!profissional) {
         throw new Error("Usuário não encontrado ou dados inválidos.");

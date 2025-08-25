@@ -30,16 +30,31 @@ export type ISala = {
   janelaLavavel: boolean;
   tetoLavavel: boolean;
   pja: boolean;
-  }
+};
 
 export type Iestoque = {
   id: number;
   salaId: number;
-  tipo: string
-}
+  tipo: string;
+};
 
 export type IdiaTrabalho = {
   id: number;
   salaId: number;
-  profissionalId:number;
-}
+  profissionalId: number;
+};
+
+export type IVacinaLote = {
+  codLote: string;
+  validade: string;
+  sigla: string;
+  nome: string;
+  tipo: string;
+  fabricante: string;
+  doses: number;
+};
+
+export type IVacinaEstoque = {
+  quantidade: number;
+  estoqueId: number;
+};
