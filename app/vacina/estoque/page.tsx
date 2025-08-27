@@ -1,6 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Home, User, Package, Clock, AlertTriangle, CheckCircle, Search, Filter, RefreshCw, Thermometer, ChevronRight, MapPin, ArrowRightLeft, Trash2, X, AlertCircle } from "lucide-react";
+import {
+  Home,
+  User,
+  Package,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  Search,
+  Filter,
+  RefreshCw,
+  Thermometer,
+  ChevronRight,
+  MapPin,
+  ArrowRightLeft,
+  Trash2,
+  X,
+  AlertCircle,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function VisualizarEstoque() {
@@ -18,15 +35,15 @@ export default function VisualizarEstoque() {
     estoqueDestino: "",
     quantidade: "",
     motivo: "",
-    observacoes: ""
+    observacoes: "",
   });
   const [descarteData, setDescarteData] = useState({
     quantidade: "",
     motivo: "",
     observacoes: "",
-    responsavel: ""
+    responsavel: "",
   });
-  
+
   // Lista de estoques disponíveis
   const estoques = [
     { id: "todos", nome: "Todos os Estoques", icon: Package },
@@ -48,7 +65,7 @@ export default function VisualizarEstoque() {
       temperatura: -18.5,
       status: "normal",
       localizacao: "freezer-a1",
-      lote: "LOT001"
+      lote: "LOT001",
     },
     {
       id: 2,
@@ -58,7 +75,7 @@ export default function VisualizarEstoque() {
       temperatura: -17.8,
       status: "atencao",
       localizacao: "freezer-a2",
-      lote: "LOT002"
+      lote: "LOT002",
     },
     {
       id: 3,
@@ -68,7 +85,7 @@ export default function VisualizarEstoque() {
       temperatura: -19.2,
       status: "critico",
       localizacao: "freezer-b1",
-      lote: "LOT003"
+      lote: "LOT003",
     },
     {
       id: 4,
@@ -78,7 +95,7 @@ export default function VisualizarEstoque() {
       temperatura: -18.1,
       status: "normal",
       localizacao: "freezer-b2",
-      lote: "LOT004"
+      lote: "LOT004",
     },
     {
       id: 5,
@@ -88,7 +105,7 @@ export default function VisualizarEstoque() {
       temperatura: -18.9,
       status: "atencao",
       localizacao: "freezer-c1",
-      lote: "LOT005"
+      lote: "LOT005",
     },
     {
       id: 6,
@@ -98,8 +115,8 @@ export default function VisualizarEstoque() {
       temperatura: -17.5,
       status: "normal",
       localizacao: "freezer-c2",
-      lote: "LOT006"
-    }
+      lote: "LOT006",
+    },
   ]);
 
   const getStatusColor = (status) => {
@@ -148,11 +165,14 @@ export default function VisualizarEstoque() {
     return `${tempo.horas}h restantes`;
   };
 
-  const filteredEstoque = estoqueData.filter(item => {
-    const matchesSearch = item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.lote.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === "todos" || item.status === filterStatus;
-    const matchesEstoque = selectedEstoque === "todos" || item.localizacao === selectedEstoque;
+  const filteredEstoque = estoqueData.filter((item) => {
+    const matchesSearch =
+      item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.lote.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      filterStatus === "todos" || item.status === filterStatus;
+    const matchesEstoque =
+      selectedEstoque === "todos" || item.localizacao === selectedEstoque;
     return matchesSearch && matchesFilter && matchesEstoque;
   });
 
@@ -182,58 +202,78 @@ export default function VisualizarEstoque() {
 
   const handleAction = (action) => {
     setShowActionModal(false);
-    
-    if (action === 'transferir') {
+
+    if (action === "transferir") {
+      router.push("/vacina/estoque/transferir");
       setTransferData({
         estoqueDestino: "",
         quantidade: selectedVacina.quantidade.toString(),
         motivo: "",
-        observacoes: ""
+        observacoes: "",
       });
       setShowTransferModal(true);
-    } else if (action === 'descartar') {
+    } else if (action === "descartar") {
+      router.push("/vacina/estoque/descartar");
       setDescarteData({
         quantidade: "",
         motivo: "",
         observacoes: "",
-        responsavel: ""
+        responsavel: "",
       });
       setShowDescarteModal(true);
     }
   };
 
   const handleTransfer = () => {
-    if (!transferData.estoqueDestino || !transferData.quantidade || !transferData.motivo) {
+    if (
+      !transferData.estoqueDestino ||
+      !transferData.quantidade ||
+      !transferData.motivo
+    ) {
       alert("Por favor, preencha todos os campos obrigatórios");
       return;
     }
 
     console.log("Transferência realizada:", {
       vacina: selectedVacina,
-      ...transferData
+      ...transferData,
     });
 
     alert("Vacina transferida com sucesso!");
     setShowTransferModal(false);
     setSelectedVacina(null);
-    setTransferData({ estoqueDestino: "", quantidade: "", motivo: "", observacoes: "" });
+    setTransferData({
+      estoqueDestino: "",
+      quantidade: "",
+      motivo: "",
+      observacoes: "",
+    });
   };
 
   const handleDescarte = () => {
-    if (!descarteData.quantidade || !descarteData.motivo || !descarteData.responsavel) {
+    if (
+      !descarteData.quantidade ||
+      !descarteData.motivo ||
+      !descarteData.responsavel
+    ) {
       alert("Por favor, preencha todos os campos obrigatórios");
       return;
     }
 
     console.log("Descarte realizado:", {
       vacina: selectedVacina,
-      ...descarteData
+      ...descarteData,
     });
 
     alert("Vacina descartada com sucesso!");
     setShowDescarteModal(false);
     setSelectedVacina(null);
-    setDescarteData({ quantidade: "", motivo: "", observacoes: "", responsavel: "" });
+    setDescarteData({
+      quantidade: "",
+      motivo: "",
+      observacoes: "",
+      responsavel: "",
+    });
   };
 
   const closeAllModals = () => {
@@ -244,14 +284,16 @@ export default function VisualizarEstoque() {
   };
 
   const getEstoqueStats = () => {
-    const filtered = selectedEstoque === "todos" ? estoqueData : 
-                    estoqueData.filter(item => item.localizacao === selectedEstoque);
-    
+    const filtered =
+      selectedEstoque === "todos"
+        ? estoqueData
+        : estoqueData.filter((item) => item.localizacao === selectedEstoque);
+
     return {
       total: filtered.length,
-      normal: filtered.filter(item => item.status === 'normal').length,
-      atencao: filtered.filter(item => item.status === 'atencao').length,
-      critico: filtered.filter(item => item.status === 'critico').length
+      normal: filtered.filter((item) => item.status === "normal").length,
+      atencao: filtered.filter((item) => item.status === "atencao").length,
+      critico: filtered.filter((item) => item.status === "critico").length,
     };
   };
 
@@ -267,14 +309,14 @@ export default function VisualizarEstoque() {
           </div>
           <span className="text-gray-700 font-medium">usuário</span>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
             <Package className="w-4 h-4" />
             Ver Estoque
           </div>
-          
-          <button 
+
+          <button
             onClick={voltarHome}
             className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 hover:scale-105"
             title="Voltar ao início"
@@ -291,7 +333,7 @@ export default function VisualizarEstoque() {
             <MapPin className="w-5 h-5 text-emerald-600" />
             Selecionar Estoque
           </h2>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
             {estoques.map((estoque) => {
               const Icon = estoque.icon;
@@ -301,8 +343,8 @@ export default function VisualizarEstoque() {
                   onClick={() => setSelectedEstoque(estoque.id)}
                   className={`p-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 flex flex-col items-center gap-2 text-sm font-medium ${
                     selectedEstoque === estoque.id
-                      ? 'bg-emerald-100 border-emerald-400 text-emerald-700'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-emerald-300 hover:bg-emerald-50'
+                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                      : "bg-white border-gray-200 text-gray-600 hover:border-emerald-300 hover:bg-emerald-50"
                   }`}
                 >
                   <Icon className="w-6 h-6" />
@@ -328,7 +370,7 @@ export default function VisualizarEstoque() {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-gray-500" />
@@ -343,14 +385,16 @@ export default function VisualizarEstoque() {
                   <option value="critico">Crítico</option>
                 </select>
               </div>
-              
+
               <button
                 onClick={handleRefresh}
                 disabled={isLoading}
                 className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50"
               >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                {isLoading ? 'Atualizando...' : 'Atualizar'}
+                <RefreshCw
+                  className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+                />
+                {isLoading ? "Atualizando..." : "Atualizar"}
               </button>
             </div>
           </div>
@@ -362,37 +406,45 @@ export default function VisualizarEstoque() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total de Itens</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.total}
+                </p>
               </div>
               <Package className="w-8 h-8 text-blue-500" />
             </div>
           </div>
-          
+
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Status Normal</p>
-                <p className="text-2xl font-bold text-green-600">{stats.normal}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.normal}
+                </p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
           </div>
-          
+
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Requer Atenção</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.atencao}</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {stats.atencao}
+                </p>
               </div>
               <Clock className="w-8 h-8 text-yellow-500" />
             </div>
           </div>
-          
+
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Estado Crítico</p>
-                <p className="text-2xl font-bold text-red-600">{stats.critico}</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.critico}
+                </p>
               </div>
               <AlertTriangle className="w-8 h-8 text-red-500" />
             </div>
@@ -404,8 +456,10 @@ export default function VisualizarEstoque() {
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
               <Package className="w-6 h-6 text-emerald-600" />
-              {selectedEstoque === "todos" ? "Todas as Vacinas" : 
-               estoques.find(e => e.id === selectedEstoque)?.nome || "Vacinas"}
+              {selectedEstoque === "todos"
+                ? "Todas as Vacinas"
+                : estoques.find((e) => e.id === selectedEstoque)?.nome ||
+                  "Vacinas"}
             </h2>
             <span className="text-sm text-gray-500">
               {filteredEstoque.length} de {stats.total} itens
@@ -426,11 +480,13 @@ export default function VisualizarEstoque() {
                       {getStatusText(item.status)}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 text-gray-600">
                       <Thermometer className="w-4 h-4" />
-                      <span className={`text-sm font-medium ${getTemperatureColor(item.temperatura)}`}>
+                      <span
+                        className={`text-sm font-medium ${getTemperatureColor(item.temperatura)}`}
+                      >
                         {item.temperatura}°C
                       </span>
                     </div>
@@ -442,7 +498,7 @@ export default function VisualizarEstoque() {
                   <h3 className="font-bold text-gray-800 text-lg leading-tight">
                     {item.nome}
                   </h3>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Quantidade:</span>
@@ -450,7 +506,7 @@ export default function VisualizarEstoque() {
                         {item.quantidade} unidades
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Lote:</span>
                       <span className="font-semibold text-gray-800">
@@ -506,274 +562,43 @@ export default function VisualizarEstoque() {
             <p className="text-gray-600 mb-6">
               Lote: {selectedVacina.lote} • {selectedVacina.quantidade} unidades
             </p>
-            
+
             <div className="space-y-3">
               <button
-                onClick={() => handleAction('transferir')}
+                onClick={() => handleAction("transferir")}
                 className="w-full flex items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition-colors"
               >
                 <ArrowRightLeft className="w-5 h-5" />
                 <div className="text-left">
-                  <div className="font-medium">Transferir para Outro Estoque</div>
-                  <div className="text-sm opacity-75">Mover vacinas entre freezers</div>
+                  <div className="font-medium">
+                    Transferir para Outro Estoque
+                  </div>
+                  <div className="text-sm opacity-75">
+                    Mover vacinas entre freezers
+                  </div>
                 </div>
               </button>
-              
+
               <button
-                onClick={() => handleAction('descartar')}
+                onClick={() => handleAction("descartar")}
                 className="w-full flex items-center gap-3 p-4 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl transition-colors"
               >
                 <Trash2 className="w-5 h-5" />
                 <div className="text-left">
                   <div className="font-medium">Descartar Vacina</div>
-                  <div className="text-sm opacity-75">Remover vacinas vencidas ou danificadas</div>
+                  <div className="text-sm opacity-75">
+                    Remover vacinas vencidas ou danificadas
+                  </div>
                 </div>
               </button>
             </div>
-            
+
             <button
               onClick={closeAllModals}
               className="w-full mt-4 p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
             >
               Cancelar
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Transferência */}
-      {showTransferModal && selectedVacina && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <ArrowRightLeft className="w-6 h-6 text-blue-600" />
-                Transferir Vacina
-              </h3>
-              <button
-                onClick={closeAllModals}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-xl mb-6">
-              <h4 className="font-bold text-gray-800">{selectedVacina.nome}</h4>
-              <p className="text-sm text-gray-600">
-                Lote: {selectedVacina.lote} • Disponível: {selectedVacina.quantidade} unidades
-              </p>
-              <p className="text-sm text-gray-600">
-                Localização atual: {estoques.find(e => e.id === selectedVacina.localizacao)?.nome}
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estoque de Destino *
-                </label>
-                <select
-                  value={transferData.estoqueDestino}
-                  onChange={(e) => setTransferData({...transferData, estoqueDestino: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  <option value="">Selecione o estoque destino</option>
-                  {estoques
-                    .filter(e => e.id !== "todos" && e.id !== selectedVacina.localizacao)
-                    .map(estoque => (
-                      <option key={estoque.id} value={estoque.id}>
-                        {estoque.nome}
-                      </option>
-                    ))
-                  }
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantidade a Transferir *
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max={selectedVacina.quantidade}
-                  value={transferData.quantidade}
-                  onChange={(e) => setTransferData({...transferData, quantidade: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  placeholder="Ex: 50"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Máximo: {selectedVacina.quantidade} unidades
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Motivo da Transferência *
-                </label>
-                <select
-                  value={transferData.motivo}
-                  onChange={(e) => setTransferData({...transferData, motivo: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  <option value="">Selecione o motivo</option>
-                  <option value="redistribuicao">Redistribuição de estoque</option>
-                  <option value="manutencao">Manutenção do equipamento</option>
-                  <option value="organizacao">Reorganização do estoque</option>
-                  <option value="temperatura">Problema de temperatura</option>
-                  <option value="outros">Outros</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Observações
-                </label>
-                <textarea
-                  value={transferData.observacoes}
-                  onChange={(e) => setTransferData({...transferData, observacoes: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 h-20 resize-none"
-                  placeholder="Informações adicionais sobre a transferência..."
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={closeAllModals}
-                className="flex-1 p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleTransfer}
-                className="flex-1 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <ArrowRightLeft className="w-4 h-4" />
-                Transferir
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Descarte */}
-      {showDescarteModal && selectedVacina && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <Trash2 className="w-6 h-6 text-red-600" />
-                Descartar Vacina
-              </h3>
-              <button
-                onClick={closeAllModals}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            
-            <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-6">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-                <h4 className="font-bold text-red-800">Atenção!</h4>
-              </div>
-              <p className="text-sm text-red-700">
-                Esta ação removerá permanentemente as vacinas do estoque. Certifique-se de que esta é a ação correta.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-xl mb-6">
-              <h4 className="font-bold text-gray-800">{selectedVacina.nome}</h4>
-              <p className="text-sm text-gray-600">
-                Lote: {selectedVacina.lote} • Disponível: {selectedVacina.quantidade} unidades
-              </p>
-              <p className="text-sm text-gray-600">
-                Localização: {estoques.find(e => e.id === selectedVacina.localizacao)?.nome}
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantidade a Descartar *
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max={selectedVacina.quantidade}
-                  value={descarteData.quantidade}
-                  onChange={(e) => setDescarteData({...descarteData, quantidade: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400"
-                  placeholder="Ex: 10"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Máximo: {selectedVacina.quantidade} unidades
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Motivo do Descarte *
-                </label>
-                <select
-                  value={descarteData.motivo}
-                  onChange={(e) => setDescarteData({...descarteData, motivo: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400"
-                >
-                  <option value="">Selecione o motivo</option>
-                  <option value="vencimento">Data de validade vencida</option>
-                  <option value="temperatura">Quebra da cadeia de frio</option>
-                  <option value="contaminacao">Suspeita de contaminação</option>
-                  <option value="danificado">Frasco danificado</option>
-                  <option value="recall">Recall do lote</option>
-                  <option value="outros">Outros</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Responsável pelo Descarte *
-                </label>
-                <input
-                  type="text"
-                  value={descarteData.responsavel}
-                  onChange={(e) => setDescarteData({...descarteData, responsavel: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400"
-                  placeholder="Nome do funcionário responsável"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Observações Detalhadas *
-                </label>
-                <textarea
-                  value={descarteData.observacoes}
-                  onChange={(e) => setDescarteData({...descarteData, observacoes: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 h-24 resize-none"
-                  placeholder="Descreva detalhadamente o motivo do descarte, condições encontradas, etc..."
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={closeAllModals}
-                className="flex-1 p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDescarte}
-                className="flex-1 p-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Confirmar Descarte
-              </button>
-            </div>
           </div>
         </div>
       )}
