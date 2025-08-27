@@ -15,21 +15,20 @@ import {
   MapPin,
   ArrowRightLeft,
   Trash2,
-  X,
-  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function VisualizarEstoque() {
   const router = useRouter();
+  const { profissional, loading, error, retry } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("todos");
   const [selectedEstoque, setSelectedEstoque] = useState("freezer-a1");
   const [isLoading, setIsLoading] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [showDescarteModal, setShowDescarteModal] = useState(false);
   const [selectedVacina, setSelectedVacina] = useState(null);
   const [transferData, setTransferData] = useState({
     estoqueDestino: "",
@@ -211,7 +210,6 @@ export default function VisualizarEstoque() {
         motivo: "",
         observacoes: "",
       });
-      setShowTransferModal(true);
     } else if (action === "descartar") {
       router.push("/vacina/estoque/descartar");
       setDescarteData({
@@ -220,7 +218,6 @@ export default function VisualizarEstoque() {
         observacoes: "",
         responsavel: "",
       });
-      setShowDescarteModal(true);
     }
   };
 
@@ -240,7 +237,6 @@ export default function VisualizarEstoque() {
     });
 
     alert("Vacina transferida com sucesso!");
-    setShowTransferModal(false);
     setSelectedVacina(null);
     setTransferData({
       estoqueDestino: "",
@@ -278,8 +274,6 @@ export default function VisualizarEstoque() {
 
   const closeAllModals = () => {
     setShowActionModal(false);
-    setShowTransferModal(false);
-    setShowDescarteModal(false);
     setSelectedVacina(null);
   };
 
@@ -298,6 +292,53 @@ export default function VisualizarEstoque() {
   };
 
   const stats = getEstoqueStats();
+
+  // Tela de loading
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Verificando autenticação...
+          </h2>
+          <p className="text-gray-600">Aguarde um momento</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Tela de erro
+  if (error) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-red-50 via-red-100 to-red-200 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Acesso Negado
+          </h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <div className="space-y-3">
+            <button
+              onClick={retry}
+              className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            >
+              Tentar Novamente
+            </button>
+            <button
+              onClick={() => router.push("/login")}
+              className="w-full px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+            >
+              Ir para Login
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 mt-4">
+            Redirecionando automaticamente em alguns segundos...
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-emerald-50">
