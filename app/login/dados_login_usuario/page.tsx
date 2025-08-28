@@ -44,7 +44,7 @@ export default function SalaInfoPage() {
   const handleNextStep = async () => {
     try {
       const token = parseCookies().auth_token;
-      const timeout = 100000;
+      const timeout = 10000;
       const response = await axios.post(
         "http://localhost:3333/dia-trabalho",
         {

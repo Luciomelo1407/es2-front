@@ -36,6 +36,22 @@ export type Iestoque = {
   id: number;
   salaId: number;
   tipo: string;
+  vacinaEstoque: IVacinaEstoque[] | null;
+};
+
+export type IVacinaEstoque = {
+  vacinaId: number;
+  estoqueId: number;
+  quantidade: number;
+  validade: string;
+  vacinaLotes: IVacinaLote | null;
+};
+
+export type ITemperaturas = {
+  estoqueId: number;
+  profissionalId: number;
+  id: number;
+  temperatura: number;
 };
 
 export type IdiaTrabalho = {
@@ -45,6 +61,7 @@ export type IdiaTrabalho = {
 };
 
 export type IVacinaLote = {
+  id: number;
   codLote: string;
   validade: string;
   sigla: string;
@@ -52,9 +69,4 @@ export type IVacinaLote = {
   tipo: string;
   fabricante: string;
   doses: number;
-};
-
-export type IVacinaEstoque = {
-  quantidade: number;
-  estoqueId: number;
 };

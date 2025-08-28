@@ -16,17 +16,91 @@ import {
   ArrowRightLeft,
   Trash2,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import axios from "axios";
+import { parseCookies } from "nookies";
+import { Iestoque, ITemperaturas } from "@/types/responseTypes";
 
 export default function VisualizarEstoque() {
   const router = useRouter();
   const { profissional, loading, error, retry } = useAuth();
+  const [estoques, setEstoques] = useState([
+    { id: "-1", tipo: "", icon: Package },
+  ]);
+  useEffect(() => {
+    if (profissional) {
+      const fetchData = async () => {
+        const token = parseCookies().auth_token;
+        const timeout = 10000;
+        const responseSala = await axios.get(
+          `http://localhost:3333/sala/${profissional.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            timeout,
+          },
+        );
+
+        const salaId = responseSala.data.result.id;
+
+        const responseEstoque = await axios.get(
+          `http://localhost:3333/estoque/${salaId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            timeout,
+          },
+        );
+        const temperaturas: ITemperaturas[] =
+          responseEstoque.data.result.temperatura;
+
+        const estoquesR: Iestoque[] = responseEstoque.data.result.estoques;
+        setSelectedEstoque(estoquesR[0].id.toString());
+        setEstoques(
+          estoquesR.map((element) => {
+            return {
+              id: element.id.toString(),
+              tipo: element.tipo,
+              icon: Package,
+            };
+          }),
+        );
+        let counter = -1;
+
+        const vacina = estoquesR.flatMap((estoqueM) => {
+          counter++; // Incrementa o contador
+          return (
+            estoqueM.vacinaEstoque?.flatMap((vacinaEstoqueO) => {
+              if (vacinaEstoqueO.vacinaLotes) {
+                return {
+                  id: vacinaEstoqueO.vacinaLotes.id.toString(),
+                  nome: vacinaEstoqueO.vacinaLotes.nome.toString(),
+                  quantidade: vacinaEstoqueO.quantidade.toString(),
+                  temperatura: temperaturas[counter].temperatura.toString(),
+                  localizacao: estoqueM.id.toString(),
+                  lote: vacinaEstoqueO.vacinaLotes.codLote.toString(),
+                  validade: vacinaEstoqueO.vacinaLotes.validade.toString(),
+                };
+              } else {
+                return;
+              }
+            }) ?? []
+          );
+        });
+        setEstoqueData(vacina);
+      };
+      fetchData();
+    }
+  }, [profissional]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("todos");
-  const [selectedEstoque, setSelectedEstoque] = useState("freezer-a1");
+  const [selectedEstoque, setSelectedEstoque] = useState("1");
   const [isLoading, setIsLoading] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
   const [selectedVacina, setSelectedVacina] = useState(null);
@@ -36,23 +110,6 @@ export default function VisualizarEstoque() {
     motivo: "",
     observacoes: "",
   });
-  const [descarteData, setDescarteData] = useState({
-    quantidade: "",
-    motivo: "",
-    observacoes: "",
-    responsavel: "",
-  });
-
-  // Lista de estoques disponíveis
-  const estoques = [
-    { id: "todos", nome: "Todos os Estoques", icon: Package },
-    { id: "freezer-a1", nome: "Freezer A1", icon: Package },
-    { id: "freezer-a2", nome: "Freezer A2", icon: Package },
-    { id: "freezer-b1", nome: "Freezer B1", icon: Package },
-    { id: "freezer-b2", nome: "Freezer B2", icon: Package },
-    { id: "freezer-c1", nome: "Freezer C1", icon: Package },
-    { id: "freezer-c2", nome: "Freezer C2", icon: Package },
-  ];
 
   // Dados simulados do estoque
   const [estoqueData, setEstoqueData] = useState([
@@ -63,7 +120,7 @@ export default function VisualizarEstoque() {
       tempoRestante: { dias: 3, horas: 12 },
       temperatura: -18.5,
       status: "normal",
-      localizacao: "freezer-a1",
+      localizacao: "1",
       lote: "LOT001",
     },
     {
@@ -157,11 +214,41 @@ export default function VisualizarEstoque() {
     }
   };
 
-  const formatTempoRestante = (tempo) => {
-    if (tempo.dias > 0) {
-      return `${tempo.dias}d ${tempo.horas}h restantes`;
+  function calcularTempoFaltante(dataString: string): string {
+    const dataRecebida = new Date(dataString); // Converte a string recebida para um objeto Date
+    const dataAtual = new Date(); // Pega a data e hora atual
+
+    // Verifica se a data recebida já passou
+    if (dataRecebida < dataAtual) {
+      return "Fora da validade";
     }
-    return `${tempo.horas}h restantes`;
+
+    // Calcula a diferença em anos, meses e dias
+    let anos = dataRecebida.getFullYear() - dataAtual.getFullYear();
+    let meses = dataRecebida.getMonth() - dataAtual.getMonth();
+    let dias = dataRecebida.getDate() - dataAtual.getDate();
+
+    // Se o mês ou o dia ainda não chegaram, ajusta a diferença
+    if (meses < 0) {
+      meses += 12;
+    }
+
+    if (dias < 0) {
+      const diasNoMesAnterior = new Date(
+        dataRecebida.getFullYear(),
+        dataRecebida.getMonth(),
+        0,
+      ).getDate();
+      dias += diasNoMesAnterior;
+      meses -= 1;
+    }
+
+    // Se a data de recebimento estiver em um ano futuro
+    return `${anos} anos, ${meses} meses e ${dias} dias restantes`;
+  }
+
+  const formatTempoRestante = (tempo) => {
+    return calcularTempoFaltante(tempo);
   };
 
   const filteredEstoque = estoqueData.filter((item) => {
@@ -212,64 +299,7 @@ export default function VisualizarEstoque() {
       });
     } else if (action === "descartar") {
       router.push("/vacina/estoque/descartar");
-      setDescarteData({
-        quantidade: "",
-        motivo: "",
-        observacoes: "",
-        responsavel: "",
-      });
     }
-  };
-
-  const handleTransfer = () => {
-    if (
-      !transferData.estoqueDestino ||
-      !transferData.quantidade ||
-      !transferData.motivo
-    ) {
-      alert("Por favor, preencha todos os campos obrigatórios");
-      return;
-    }
-
-    console.log("Transferência realizada:", {
-      vacina: selectedVacina,
-      ...transferData,
-    });
-
-    alert("Vacina transferida com sucesso!");
-    setSelectedVacina(null);
-    setTransferData({
-      estoqueDestino: "",
-      quantidade: "",
-      motivo: "",
-      observacoes: "",
-    });
-  };
-
-  const handleDescarte = () => {
-    if (
-      !descarteData.quantidade ||
-      !descarteData.motivo ||
-      !descarteData.responsavel
-    ) {
-      alert("Por favor, preencha todos os campos obrigatórios");
-      return;
-    }
-
-    console.log("Descarte realizado:", {
-      vacina: selectedVacina,
-      ...descarteData,
-    });
-
-    alert("Vacina descartada com sucesso!");
-    setShowDescarteModal(false);
-    setSelectedVacina(null);
-    setDescarteData({
-      quantidade: "",
-      motivo: "",
-      observacoes: "",
-      responsavel: "",
-    });
   };
 
   const closeAllModals = () => {
@@ -389,106 +419,10 @@ export default function VisualizarEstoque() {
                   }`}
                 >
                   <Icon className="w-6 h-6" />
-                  {estoque.nome}
+                  {estoque.tipo}
                 </button>
               );
             })}
-          </div>
-        </div>
-
-        {/* Controles e Filtros */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="flex-1 w-full lg:max-w-md">
-              <div className="relative">
-                <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar por vacina ou lote..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-500" />
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
-                >
-                  <option value="todos">Todos os status</option>
-                  <option value="normal">Normal</option>
-                  <option value="atencao">Atenção</option>
-                  <option value="critico">Crítico</option>
-                </select>
-              </div>
-
-              <button
-                onClick={handleRefresh}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50"
-              >
-                <RefreshCw
-                  className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
-                />
-                {isLoading ? "Atualizando..." : "Atualizar"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Estatísticas do Estoque Selecionado */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Total de Itens</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {stats.total}
-                </p>
-              </div>
-              <Package className="w-8 h-8 text-blue-500" />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Status Normal</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.normal}
-                </p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-green-500" />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Requer Atenção</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {stats.atencao}
-                </p>
-              </div>
-              <Clock className="w-8 h-8 text-yellow-500" />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Estado Crítico</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {stats.critico}
-                </p>
-              </div>
-              <AlertTriangle className="w-8 h-8 text-red-500" />
-            </div>
           </div>
         </div>
 
@@ -512,22 +446,20 @@ export default function VisualizarEstoque() {
               <button
                 key={item.id}
                 onClick={() => handleVacinaClick(item)}
-                className={`bg-gradient-to-br ${getStatusColor(item.status)} rounded-2xl p-6 border-2 transition-all duration-200 hover:scale-105 hover:shadow-lg text-left group`}
+                className={`bg-gradient-to-br from-green-100 to-emerald-200 border-green-300 hover:from-green-200 hover:to-emerald-300 rounded-2xl p-6 border-2 transition-all duration-200 hover:scale-105 hover:shadow-lg text-left group`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(item.status)}
                     <span className="text-xs font-bold tracking-wide">
-                      {getStatusText(item.status)}
+                      estoque id: {item.localizacao.toString()}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 text-gray-600">
                       <Thermometer className="w-4 h-4" />
-                      <span
-                        className={`text-sm font-medium ${getTemperatureColor(item.temperatura)}`}
-                      >
+                      <span className={`text-sm font-medium text-black`}>
                         {item.temperatura}°C
                       </span>
                     </div>
@@ -560,7 +492,7 @@ export default function VisualizarEstoque() {
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-gray-500" />
                       <span className="text-sm text-gray-600">
-                        {formatTempoRestante(item.tempoRestante)}
+                        {formatTempoRestante(item.validade)}
                       </span>
                     </div>
                   </div>
