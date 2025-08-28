@@ -56,7 +56,6 @@ export default function VisualizarEstoque() {
             timeout,
           },
         );
-        console.log(responseEstoque.data.result);
         const temperaturas: ITemperaturas[] =
           responseEstoque.data.result.temperatura;
 
@@ -71,33 +70,29 @@ export default function VisualizarEstoque() {
             };
           }),
         );
-        let counter = 0;
-        const vacina: any = [];
-        estoquesR.forEach((estoqueM) => {
-          console.log(estoqueM);
-          if (estoqueM.vacinaEstoques) {
-            estoqueM.vacinaEstoques.forEach((vacinaEstoque) => {
-              if (vacinaEstoque.vacinaLotes) {
-                vacinaEstoque.vacinaLotes.forEach((vacinaLote) => {
-                  // Verifique se o índice de temperatura é válido
-                  if (temperaturas[counter]) {
-                    vacina.push({
-                      id: vacinaLote.id.toString(),
-                      nome: vacinaLote.nome.toString(),
-                      quantidade: vacinaEstoque.quantidade.toString(),
-                      temperatura: temperaturas[counter].temperatura.toString(),
-                      localizacao: estoqueM.id.toString(),
-                      lote: vacinaLote.codLote.toString(),
-                    });
-                    counter++; // Incrementa o contador após adicionar o item
-                  }
-                });
+        let counter = -1;
+
+        const vacina = estoquesR.flatMap((estoqueM) => {
+          counter++; // Incrementa o contador
+          return (
+            estoqueM.vacinaEstoque?.flatMap((vacinaEstoqueO) => {
+              if (vacinaEstoqueO.vacinaLotes) {
+                return {
+                  id: vacinaEstoqueO.vacinaLotes.id.toString(),
+                  nome: vacinaEstoqueO.vacinaLotes.nome.toString(),
+                  quantidade: vacinaEstoqueO.quantidade.toString(),
+                  temperatura: temperaturas[counter].temperatura.toString(),
+                  localizacao: estoqueM.id.toString(),
+                  lote: vacinaEstoqueO.vacinaLotes.codLote.toString(),
+                  validade: vacinaEstoqueO.vacinaLotes.validade.toString(),
+                };
+              } else {
+                return;
               }
-            });
-          }
+            }) ?? []
+          );
         });
-        console.log(vacina);
-        // setEstoqueData(vacina);
+        setEstoqueData(vacina);
       };
       fetchData();
     }
@@ -219,11 +214,41 @@ export default function VisualizarEstoque() {
     }
   };
 
-  const formatTempoRestante = (tempo) => {
-    if (tempo.dias > 0) {
-      return `${tempo.dias}d ${tempo.horas}h restantes`;
+  function calcularTempoFaltante(dataString: string): string {
+    const dataRecebida = new Date(dataString); // Converte a string recebida para um objeto Date
+    const dataAtual = new Date(); // Pega a data e hora atual
+
+    // Verifica se a data recebida já passou
+    if (dataRecebida < dataAtual) {
+      return "Fora da validade";
     }
-    return `${tempo.horas}h restantes`;
+
+    // Calcula a diferença em anos, meses e dias
+    let anos = dataRecebida.getFullYear() - dataAtual.getFullYear();
+    let meses = dataRecebida.getMonth() - dataAtual.getMonth();
+    let dias = dataRecebida.getDate() - dataAtual.getDate();
+
+    // Se o mês ou o dia ainda não chegaram, ajusta a diferença
+    if (meses < 0) {
+      meses += 12;
+    }
+
+    if (dias < 0) {
+      const diasNoMesAnterior = new Date(
+        dataRecebida.getFullYear(),
+        dataRecebida.getMonth(),
+        0,
+      ).getDate();
+      dias += diasNoMesAnterior;
+      meses -= 1;
+    }
+
+    // Se a data de recebimento estiver em um ano futuro
+    return `${anos} anos, ${meses} meses e ${dias} dias restantes`;
+  }
+
+  const formatTempoRestante = (tempo) => {
+    return calcularTempoFaltante(tempo);
   };
 
   const filteredEstoque = estoqueData.filter((item) => {
@@ -401,57 +426,6 @@ export default function VisualizarEstoque() {
           </div>
         </div>
 
-        {/* Estatísticas do Estoque Selecionado */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Total de Itens</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {stats.total}
-                </p>
-              </div>
-              <Package className="w-8 h-8 text-blue-500" />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Status Normal</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.normal}
-                </p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-green-500" />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Requer Atenção</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {stats.atencao}
-                </p>
-              </div>
-              <Clock className="w-8 h-8 text-yellow-500" />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Estado Crítico</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {stats.critico}
-                </p>
-              </div>
-              <AlertTriangle className="w-8 h-8 text-red-500" />
-            </div>
-          </div>
-        </div>
-
         {/* Grid de Vacinas */}
         <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mt-4">
           <div className="mb-6 flex items-center justify-between">
@@ -472,22 +446,20 @@ export default function VisualizarEstoque() {
               <button
                 key={item.id}
                 onClick={() => handleVacinaClick(item)}
-                className={`bg-gradient-to-br ${getStatusColor(item.status)} rounded-2xl p-6 border-2 transition-all duration-200 hover:scale-105 hover:shadow-lg text-left group`}
+                className={`bg-gradient-to-br from-green-100 to-emerald-200 border-green-300 hover:from-green-200 hover:to-emerald-300 rounded-2xl p-6 border-2 transition-all duration-200 hover:scale-105 hover:shadow-lg text-left group`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(item.status)}
                     <span className="text-xs font-bold tracking-wide">
-                      {getStatusText(item.status)}
+                      estoque id: {item.localizacao.toString()}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 text-gray-600">
                       <Thermometer className="w-4 h-4" />
-                      <span
-                        className={`text-sm font-medium ${getTemperatureColor(item.temperatura)}`}
-                      >
+                      <span className={`text-sm font-medium text-black`}>
                         {item.temperatura}°C
                       </span>
                     </div>
@@ -520,7 +492,7 @@ export default function VisualizarEstoque() {
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-gray-500" />
                       <span className="text-sm text-gray-600">
-                        {formatTempoRestante(item.tempoRestante)}
+                        {formatTempoRestante(item.validade)}
                       </span>
                     </div>
                   </div>

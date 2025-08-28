@@ -36,14 +36,15 @@ export type Iestoque = {
   id: number;
   salaId: number;
   tipo: string;
-  vacinaEstoques: IVacinaEstoque[] | null;
+  vacinaEstoque: IVacinaEstoque[] | null;
 };
 
 export type IVacinaEstoque = {
   vacinaId: number;
   estoqueId: number;
   quantidade: number;
-  vacinaLotes: IVacinaLote[] | null;
+  validade: string;
+  vacinaLotes: IVacinaLote | null;
 };
 
 export type ITemperaturas = {
