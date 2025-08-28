@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "axios";
 import { parseCookies } from "nookies";
-import { Iestoque } from "@/types/responseTypes";
+import { Iestoque, ITemperaturas } from "@/types/responseTypes";
 
 export default function VisualizarEstoque() {
   const router = useRouter();
@@ -35,8 +35,8 @@ export default function VisualizarEstoque() {
       const fetchData = async () => {
         const token = parseCookies().auth_token;
         const timeout = 10000;
-        const response = await axios.get(
-          `http://localhost:3333/dia-trabalho/${profissional.id}`,
+        const responseSala = await axios.get(
+          `http://localhost:3333/sala/${profissional.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -44,8 +44,23 @@ export default function VisualizarEstoque() {
             timeout,
           },
         );
-        const estoquesR: Iestoque[] =
-          response.data.result.diaTrabalho.sala.estoques;
+
+        const salaId = responseSala.data.result.id;
+
+        const responseEstoque = await axios.get(
+          `http://localhost:3333/estoque/${salaId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            timeout,
+          },
+        );
+        console.log(responseEstoque.data.result);
+        const temperaturas: ITemperaturas[] =
+          responseEstoque.data.result.temperatura;
+
+        const estoquesR: Iestoque[] = responseEstoque.data.result.estoques;
         setSelectedEstoque(estoquesR[0].id.toString());
         setEstoques(
           estoquesR.map((element) => {
@@ -56,6 +71,33 @@ export default function VisualizarEstoque() {
             };
           }),
         );
+        let counter = 0;
+        const vacina: any = [];
+        estoquesR.forEach((estoqueM) => {
+          console.log(estoqueM);
+          if (estoqueM.vacinaEstoques) {
+            estoqueM.vacinaEstoques.forEach((vacinaEstoque) => {
+              if (vacinaEstoque.vacinaLotes) {
+                vacinaEstoque.vacinaLotes.forEach((vacinaLote) => {
+                  // Verifique se o índice de temperatura é válido
+                  if (temperaturas[counter]) {
+                    vacina.push({
+                      id: vacinaLote.id.toString(),
+                      nome: vacinaLote.nome.toString(),
+                      quantidade: vacinaEstoque.quantidade.toString(),
+                      temperatura: temperaturas[counter].temperatura.toString(),
+                      localizacao: estoqueM.id.toString(),
+                      lote: vacinaLote.codLote.toString(),
+                    });
+                    counter++; // Incrementa o contador após adicionar o item
+                  }
+                });
+              }
+            });
+          }
+        });
+        console.log(vacina);
+        // setEstoqueData(vacina);
       };
       fetchData();
     }
