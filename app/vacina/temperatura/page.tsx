@@ -2,9 +2,11 @@
 import { useState, useEffect } from "react";
 import { Home, Plus, User, Check, AlertCircle, Clock, Calendar, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function RegistroTemperatura() {
   const router = useRouter();
+  const { profissional, loading, error, retry } = useAuth();
   
   const [data, setData] = useState("");
   const [hora, setHora] = useState("");
@@ -87,6 +89,37 @@ export default function RegistroTemperatura() {
     const cleaned = value.replace(/[^\d.,-]/g, '');
     return cleaned;
   };
+
+if (error) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-red-50 via-red-100 to-red-200 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Acesso Negado
+          </h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <div className="space-y-3">
+            <button
+              onClick={retry}
+              className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            >
+              Tentar Novamente
+            </button>
+            <button
+              onClick={() => router.push("/login")}
+              className="w-full px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+            >
+              Ir para Login
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 mt-4">
+            Redirecionando automaticamente em alguns segundos...
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-emerald-50">

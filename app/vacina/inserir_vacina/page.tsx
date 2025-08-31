@@ -333,7 +333,7 @@ export default function InserirVacinaPage() {
   }
 
   // Tela de erro
-  if (error) {
+if (error) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-red-50 via-red-100 to-red-200 flex items-center justify-center p-6">
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
