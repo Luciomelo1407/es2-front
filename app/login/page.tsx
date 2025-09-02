@@ -297,7 +297,7 @@ export default function Home() {
 
         {/* Imagem de fundo relacionada ao tema de vacinação */}
         <img
-          src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Abertura_da_Campanha_de_Vacina%C3%A7%C3%A3o_contra_Covid-19_em_S%C3%A3o_Jos%C3%A9_dos_Campos_-_50856175627.jpg/960px-Abertura_da_Campanha_de_Vacina%C3%A7%C3%A3o_contra_Covid-19_em_S%C3%A5_dos_Campos_-_50856175627.jpg?20210122040450"
+          src="imagem_login.jpg"
           alt="Profissional de saúde aplicando vacina"
           className="w-full h-full object-cover"
         />
