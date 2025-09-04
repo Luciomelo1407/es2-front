@@ -45,12 +45,15 @@ export const useAuth = (options: UseAuthOptions = {}): UseAuthReturn => {
       }
 
       // Faz a requisição para a rota /me
-      const response = await axios.get(`http://${process.env.BACKEND_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await axios.get(
+        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout,
         },
-        timeout,
-      });
+      );
       const profissional: IProfissional = response.data.result;
 
       if (!profissional) {

@@ -37,45 +37,44 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function VaccineDashboard() {
   // URL da sua API
-  const API_URL = `http://${process.env.BACKEND_URL}/api/higiene_salas`;
+  const API_URL = `http://${process.env.NEXT_PUBLIC_BACKEND_URL}/api/higiene_salas`;
 
   // Função principal para enviar dados
   async function enviarParaBanco() {
-      // Dados que serão enviados
-      const dadosHigiene = {
-          sala_id: 0,                           // ID da sala (obrigatório)       
-      };
+    // Dados que serão enviados
+    const dadosHigiene = {
+      sala_id: 0, // ID da sala (obrigatório)
+    };
 
-      try {
-          // Fazendo a requisição POST
-          const response = await fetch(API_URL, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(dadosHigiene)
-          });
+    try {
+      // Fazendo a requisição POST
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dadosHigiene),
+      });
 
-          // Verificando se deu certo
-          if (response.ok) {
-              const resultado = await response.json();
-              console.log('✅ SUCESSO! Dados salvos:', resultado);
-              setShowCleaningAlert(true);
-              // Auto-hide alert after 5 seconds
-              setTimeout(() => {
-                setShowCleaningAlert(false);
-              }, 5000);
-              return resultado;
-          } else {
-              const erro = await response.text();
-              console.log('❌ ERRO:', erro);
-              throw new Error(erro);
-          }
-
-      } catch (error) {
-          console.log('❌ ERRO na requisição:', error.message);
-          throw error;
+      // Verificando se deu certo
+      if (response.ok) {
+        const resultado = await response.json();
+        console.log("✅ SUCESSO! Dados salvos:", resultado);
+        setShowCleaningAlert(true);
+        // Auto-hide alert after 5 seconds
+        setTimeout(() => {
+          setShowCleaningAlert(false);
+        }, 5000);
+        return resultado;
+      } else {
+        const erro = await response.text();
+        console.log("❌ ERRO:", erro);
+        throw new Error(erro);
       }
+    } catch (error) {
+      console.log("❌ ERRO na requisição:", error.message);
+      throw error;
+    }
   }
 
   const { profissional, loading, error, retry } = useAuth();
@@ -120,7 +119,7 @@ export default function VaccineDashboard() {
     try {
       await enviarParaBanco();
     } catch (error) {
-      console.error('Erro ao salvar:', error);
+      console.error("Erro ao salvar:", error);
       // Aqui você poderia mostrar um alerta de erro também
     }
   };
@@ -264,7 +263,9 @@ export default function VaccineDashboard() {
           <div className="mb-6">
             <Alert className="border-green-200 bg-green-50">
               <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <AlertTitle className="text-green-800">Limpeza Confirmada!</AlertTitle>
+              <AlertTitle className="text-green-800">
+                Limpeza Confirmada!
+              </AlertTitle>
               <AlertDescription className="text-green-700">
                 A limpeza da sala foi registrada com sucesso no sistema.
               </AlertDescription>
@@ -394,7 +395,10 @@ export default function VaccineDashboard() {
       </div>
 
       {/* Alert Dialog para Limpeza */}
-      <AlertDialog open={showCleaningDialog} onOpenChange={setShowCleaningDialog}>
+      <AlertDialog
+        open={showCleaningDialog}
+        onOpenChange={setShowCleaningDialog}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -402,14 +406,15 @@ export default function VaccineDashboard() {
               Confirmar Limpeza
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Você deseja realizar a limpeza da sala? Esta ação irá confirmar a limpeza no sistema.
+              Você deseja realizar a limpeza da sala? Esta ação irá confirmar a
+              limpeza no sistema.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancelCleaning}>
               Cancelar
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleConfirmCleaning}
               className="bg-purple-600 hover:bg-purple-700"
             >

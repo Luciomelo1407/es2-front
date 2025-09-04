@@ -63,7 +63,7 @@ export default function InserirVacinaPage() {
       const timeout = 10000;
       const token = parseCookies().auth_token;
       const response = await axios.get(
-        `http://${process.env.BACKEND_URL}/dia-trabalho/${profissional?.id}`,
+        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}/dia-trabalho/${profissional?.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -252,7 +252,7 @@ export default function InserirVacinaPage() {
       const token = parseCookies().auth_token;
 
       const response = await axios.post(
-        `http://${process.env.BACKEND_URL}/vacina`,
+        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}/vacina`,
         {
           codLote: formData.lote,
           validade: formData.validade,
