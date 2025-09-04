@@ -19,6 +19,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+import { LogOut } from "lucide-react"
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -220,6 +222,10 @@ export default function VaccineDashboard() {
     );
   }
 
+  function voltarLogin() {
+    router.push("login");
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
@@ -251,6 +257,25 @@ export default function VaccineDashboard() {
                 <p className="text-sm font-medium text-gray-900">Usuário</p>
                 <p className="text-xs text-gray-500">ID: 201547</p>
               </div>
+              <Button 
+              className="
+                bg-white-50 
+                text-green-600 
+                border border-grey-200 
+                px-4 py-4 
+                rounded-xl 
+                shadow-sm 
+                font-medium
+                hover:bg-green-100 
+                hover:text-green-700
+                transition-colors 
+                duration-300
+              "
+
+              onClick={voltarLogin}>
+                Sair
+                <LogOut className=" h-5 w-5" />
+              </Button>
             </div>
           </div>
         </div>

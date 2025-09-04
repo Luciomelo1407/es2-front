@@ -21,6 +21,8 @@ import { IProfissional, AccessToken } from "@/types/responseTypes";
  * Gerencia autenticação de usuários e redirecionamento baseado no tipo de perfil
  */
 export function CardDemo() {
+  console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
+
   const router = useRouter();
 
   // Estados para controle da interface e dados do formulário

@@ -12,6 +12,8 @@ import {
   Search
 } from 'lucide-react';
 
+import { LogOut } from "lucide-react"
+
 /**
  * Componente principal do painel administrativo
  * Renderiza uma interface centralizada com ações rápidas para gerenciamento do sistema
@@ -71,6 +73,10 @@ const AdminDashboard = () => {
       console.log(`Ação: ${action.action}`);
     }
   };
+
+  function voltarLogin() {
+    router.push("login");
+  }
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-50 flex items-center justify-center p-6">
@@ -127,6 +133,29 @@ const AdminDashboard = () => {
               })}
             </div>
           </CardContent>
+          <div className="flex justify-center mt-8">
+            <Button
+              className="
+                bg-white-50 
+                text-green-600 
+                text-lg
+                border border-grey-200 
+                px-8 py-6 
+                rounded-xl 
+                shadow-sm 
+                font-medium
+                hover:bg-green-100 
+                hover:text-green-700
+                transition-colors 
+                duration-300
+              "
+              onClick={voltarLogin}
+            >
+              Sair
+              <LogOut className=" h-5 w-5" />
+            </Button>
+          </div>
+          
         </Card>
 
         {/* Rodapé informativo do sistema */}
