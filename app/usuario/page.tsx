@@ -37,7 +37,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function VaccineDashboard() {
   // URL da sua API
-  const API_URL = 'http://localhost:3333/api/higiene_salas';
+  const API_URL = `http://${process.env.BACKEND_URL}/api/higiene_salas`;
 
   // Função principal para enviar dados
   async function enviarParaBanco() {

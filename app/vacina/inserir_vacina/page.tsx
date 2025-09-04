@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { Iestoque, ISala, IVacina } from "@/types/responseTypes";
+import { Iestoque, ISala, IVacinaLote } from "@/types/responseTypes";
 import axios from "axios";
 import { promises } from "dns";
 import { parseCookies } from "nookies";
@@ -63,7 +63,7 @@ export default function InserirVacinaPage() {
       const timeout = 10000;
       const token = parseCookies().auth_token;
       const response = await axios.get(
-        `http://localhost:3333/dia-trabalho/${profissional?.id}`,
+        `http://${process.env.BACKEND_URL}/dia-trabalho/${profissional?.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -252,7 +252,7 @@ export default function InserirVacinaPage() {
       const token = parseCookies().auth_token;
 
       const response = await axios.post(
-        "http://localhost:3333/vacina",
+        `http://${process.env.BACKEND_URL}/vacina`,
         {
           codLote: formData.lote,
           validade: formData.validade,

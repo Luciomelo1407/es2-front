@@ -45,7 +45,7 @@ export const useAuth = (options: UseAuthOptions = {}): UseAuthReturn => {
       }
 
       // Faz a requisição para a rota /me
-      const response = await axios.get("http://localhost:3333/auth/me", {
+      const response = await axios.get(`http://${process.env.BACKEND_URL}/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

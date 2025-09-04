@@ -27,7 +27,7 @@ export default function TransferirVacina() {
         const timeout = 10000;
 
         const responseEstoque = await axios.get(
-          `http://localhost:3333/estoque/${salaId}`,
+          `http://${process.env.BACKEND_URL}/estoque/${salaId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -49,7 +49,7 @@ export default function TransferirVacina() {
           });
 
         const vacinaEstoqueResponse = await axios.get(
-          `http://localhost:3333/vacina-estoque/${vacinaId}/${estoqueId}`,
+          `http://${process.env.BACKEND_URL}/vacina-estoque/${vacinaId}/${estoqueId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -75,7 +75,7 @@ export default function TransferirVacina() {
       const token = parseCookies().auth_token;
       const timeout = 10000;
       const response = await axios.put(
-        `http://localhost:3333/vacina-estoque/${vacinaEstoque?.id}`,
+        `http://${process.env.BACKEND_URL}/vacina-estoque/${vacinaEstoque?.id}`,
         {
           quantidade: null,
           estoqueDestinoId: null,
