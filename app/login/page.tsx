@@ -61,7 +61,7 @@ export function CardDemo() {
     try {
       // Requisição POST para endpoint de autenticação
       // Mapeia 'id' do formulário para 'email' conforme esperado pela API
-      const response = await axios.post(`${process.env.BACKEND_URL}/login`, {
+      const response = await axios.post(`http://${process.env.BACKEND_URL}/login`, {
         email: formData.id, // Mapeamento necessário para compatibilidade com backend
         password: formData.password,
       });
