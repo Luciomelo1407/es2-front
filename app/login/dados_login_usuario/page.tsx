@@ -46,7 +46,7 @@ export default function SalaInfoPage() {
       const token = parseCookies().auth_token;
       const timeout = 10000;
       const response = await axios.post(
-        `${process.env.BACKEND_URL}/dia-trabalho`,
+        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}/dia-trabalho`,
         {
           profissionalId: profissional?.id,
           salaId: salaInfo,
@@ -104,7 +104,7 @@ export default function SalaInfoPage() {
       const timeout = 10000;
 
       const response = await axios.post(
-        `http://${process.env.BACKEND_URL}/reg-temperatura`,
+        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}/reg-temperatura`,
         regTemperaturas.map((element) => element),
         {
           headers: {

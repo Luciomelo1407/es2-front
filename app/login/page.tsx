@@ -17,9 +17,9 @@ import {
 import { IProfissional, AccessToken } from "@/types/responseTypes";
 
 /**
-* Componente principal do formulário de login
-* Gerencia autenticação de usuários e redirecionamento baseado no tipo de perfil
-*/
+ * Componente principal do formulário de login
+ * Gerencia autenticação de usuários e redirecionamento baseado no tipo de perfil
+ */
 export function CardDemo() {
   const router = useRouter();
 
@@ -61,10 +61,13 @@ export function CardDemo() {
     try {
       // Requisição POST para endpoint de autenticação
       // Mapeia 'id' do formulário para 'email' conforme esperado pela API
-      const response = await axios.post(`http://${process.env.BACKEND_URL}/login`, {
-        email: formData.id, // Mapeamento necessário para compatibilidade com backend
-        password: formData.password,
-      });
+      const response = await axios.post(
+        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}/login`,
+        {
+          email: formData.id, // Mapeamento necessário para compatibilidade com backend
+          password: formData.password,
+        },
+      );
 
       // Extração dos dados de resposta da autenticação
       const profissional: IProfissional = response.data.result.profissional;
@@ -166,7 +169,6 @@ export function CardDemo() {
     <>
       {/* Container principal do card de login com design moderno */}
       <div className="w-[400px] shadow-2xl border-0 bg-white/95 backdrop-blur-sm rounded-lg overflow-hidden">
-
         {/* Cabeçalho do card com logo e título */}
         <div className="space-y-4 pb-6 p-6">
           <div className="flex justify-center">
@@ -193,7 +195,6 @@ export function CardDemo() {
 
         {/* Seção dos campos do formulário */}
         <div className="space-y-4 px-6">
-
           {/* Campo de email com ícone e validação */}
           <div className="space-y-2">
             <label
@@ -209,10 +210,11 @@ export function CardDemo() {
               placeholder="exemplo@email.com"
               value={formData.id}
               onChange={(e) => handleInputChange("id", e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md transition-all duration-200 focus:outline-none focus:ring-2 ${errors.id
-                ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-200"
-                }`}
+              className={`w-full px-3 py-2 border rounded-md transition-all duration-200 focus:outline-none focus:ring-2 ${
+                errors.id
+                  ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                  : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-200"
+              }`}
               disabled={loading} // Desabilitado durante requisição para evitar múltiplos envios
             />
             {/* Exibição condicional de erro do campo email */}
@@ -236,10 +238,11 @@ export function CardDemo() {
                 type={showPassword ? "text" : "password"} // Alternância entre texto e senha
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
-                className={`w-full px-3 py-2 pr-10 border rounded-md transition-all duration-200 focus:outline-none focus:ring-2 ${errors.password
-                  ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                  : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-200"
-                  }`}
+                className={`w-full px-3 py-2 pr-10 border rounded-md transition-all duration-200 focus:outline-none focus:ring-2 ${
+                  errors.password
+                    ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                    : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-200"
+                }`}
                 placeholder="Digite sua senha"
                 disabled={loading} // Consistência de estado durante loading
               />
@@ -283,13 +286,12 @@ export function CardDemo() {
 }
 
 /**
-* Componente principal da página de login
-* Estrutura layout responsivo com seção de imagem e formulário
-*/
+ * Componente principal da página de login
+ * Estrutura layout responsivo com seção de imagem e formulário
+ */
 export default function Home() {
   return (
     <main className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-
       {/* Seção da imagem com overlay informativo */}
       <div className="relative h-64 lg:h-auto lg:min-h-screen overflow-hidden">
         {/* Gradiente sobre a imagem para melhor legibilidade do texto */}
@@ -333,7 +335,6 @@ export default function Home() {
 
       {/* Seção do formulário com fundo gradiente e elementos decorativos */}
       <div className="flex items-center justify-center p-6 lg:p-10 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 relative overflow-hidden">
-
         {/* Elementos decorativos em blur para criar profundidade visual */}
         {/* Posicionados estrategicamente para criar atmosfera sem interferir na usabilidade */}
         <div className="absolute top-10 right-10 w-32 h-32 bg-emerald-200/30 rounded-full blur-3xl"></div>

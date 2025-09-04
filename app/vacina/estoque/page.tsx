@@ -38,7 +38,7 @@ export default function VisualizarEstoque() {
         const token = parseCookies().auth_token;
         const timeout = 10000;
         const responseSala = await axios.get(
-          `http://${process.env.BACKEND_URL}/sala/${profissional.id}`,
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}/sala/${profissional.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -51,7 +51,7 @@ export default function VisualizarEstoque() {
         setSala(salaId);
 
         const responseEstoque = await axios.get(
-          `http://${process.env.BACKEND_URL}/estoque/${salaId}`,
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}/estoque/${salaId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
