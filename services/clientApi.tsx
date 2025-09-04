@@ -11,7 +11,7 @@ const getToken = async (): Promise<string | undefined> => {
 
 // Criando uma instância do Axios com configurações padrão
 const api = axios.create({
-  baseURL: "http://localhost:3333",
+  baseURL: `${process.env.BACKEND_URL}`,
   headers: {
     "Content-Type": "application/json",
   },
