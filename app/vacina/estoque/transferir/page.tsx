@@ -1,8 +1,145 @@
 "use client";
-import { X } from "lucide-react";
+import { AlertCircle, Loader2, X } from "lucide-react";
 import { ArrowRightLeft } from "lucide-react";
-
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { parseCookies } from "nookies";
+import { Iestoque, IVacinaEstoque } from "@/types/responseTypes";
 export default function TransferirVacina() {
+  const searchParams = useSearchParams();
+  const vacinaId = searchParams.get("vacinaId");
+  const salaId = searchParams.get("salaId");
+  const estoqueId = searchParams.get("estoqueId");
+  const vacinaNome = searchParams.get("vacinaNome");
+
+  const router = useRouter();
+  const { profissional, loading, error, retry } = useAuth();
+
+  useEffect(() => {
+    if (profissional) {
+      console.log(profissional);
+
+      const fetchData = async () => {
+        const token = parseCookies().auth_token;
+        const timeout = 10000;
+
+        const responseEstoque = await axios.get(
+          `http://localhost:3333/estoque/${salaId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            timeout,
+          },
+        );
+        const estoquesD: Iestoque[] = responseEstoque.data.result.estoques;
+        const estoqueFiltered = estoquesD
+          .filter((e) => {
+            console.log(e.id.toString() == estoqueId);
+            return e.id.toString() != estoqueId;
+          })
+          .map((element) => {
+            return {
+              id: element.id,
+              tipo: element.tipo,
+            };
+          });
+
+        const vacinaEstoqueResponse = await axios.get(
+          `http://localhost:3333/vacina-estoque/${vacinaId}/${estoqueId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            timeout,
+          },
+        );
+
+        setVacinaEstoque(vacinaEstoqueResponse.data.result);
+
+        setEstoques(estoqueFiltered);
+      };
+
+      fetchData();
+    }
+  }, [profissional]);
+
+  const [estoques, setEstoques] = useState([{}]);
+  const [vacinaEstoque, setVacinaEstoque] = useState<IVacinaEstoque | null>();
+
+  async function handleTransfer() {
+    try {
+      const token = parseCookies().auth_token;
+      const timeout = 10000;
+      const response = await axios.put(
+        `http://localhost:3333/vacina-estoque/${vacinaEstoque?.id}`,
+        {
+          quantidade: null,
+          estoqueDestinoId: null,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout,
+        },
+      );
+    } catch (error) {
+      router.push("/vacina/estoque");
+      throw error;
+    }
+  }
+
+  // Tela de loading
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Verificando autenticação...
+          </h2>
+          <p className="text-gray-600">Aguarde um momento</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Tela de erro
+  if (error) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-red-50 via-red-100 to-red-200 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Acesso Negado
+          </h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <div className="space-y-3">
+            <button
+              onClick={retry}
+              className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            >
+              Tentar Novamente
+            </button>
+            <button
+              onClick={() => router.push("/login")}
+              className="w-full px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+            >
+              Ir para Login
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 mt-4">
+            Redirecionando automaticamente em alguns segundos...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -28,7 +165,7 @@ export default function TransferirVacina() {
             {/* {selectedVacina.quantidade} unidades */}
           </p>
           <p className="text-sm text-gray-600">
-            vacina a ser transferida:{" "}
+            vacina a ser transferida: {vacinaNome}
             {/* {estoques.find((e) => e.id === selectedVacina.localizacao)?.nome} */}
           </p>
         </div>
@@ -42,7 +179,7 @@ export default function TransferirVacina() {
             {/* {selectedVacina.quantidade} unidades */}
           </p>
           <p className="text-sm text-gray-600">
-            Localização atual:{" "}
+            Localização atual: {estoqueId}
             {/* {estoques.find((e) => e.id === selectedVacina.localizacao)?.nome} */}
           </p>
         </div>
@@ -63,17 +200,11 @@ export default function TransferirVacina() {
               className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="">Selecione o estoque destino</option>
-              {/* {estoques */}
-              {/*   .filter( */}
-              {/*     (e) => */}
-              {/*       e.id !== "todos" && e.id !== selectedVacina.localizacao, */}
-              {/*   ) */}
-              {/*   .map((estoque) => ( */}
-              {/*     <option key={estoque.id} value={estoque.id}> */}
-              {/*       {estoque.nome} */}
-              {/*     </option> */}
-              {/*   )) */}
-              {/* } */}
+              {estoques.map((estoque) => (
+                <option key={estoque.id} value={estoque.id}>
+                  {estoque.tipo} : {estoque.id}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -84,20 +215,13 @@ export default function TransferirVacina() {
             <input
               type="number"
               min="1"
-              // max={selectedVacina.quantidade}
-              // value={transferData.quantidade}
-              // onChange={(e) =>
-              //   setTransferData({
-              //     ...transferData,
-              //     quantidade: e.target.value,
-              //   })
-              // }
+              max={vacinaEstoque?.quantidade}
               className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="Ex: 50"
             />
             <p className="text-xs text-gray-500 mt-1">
               Máximo:
-              {/* {selectedVacina.quantidade} */}
+              {vacinaEstoque?.quantidade}
               unidades
             </p>
           </div>

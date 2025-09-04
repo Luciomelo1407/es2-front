@@ -17,6 +17,7 @@ import {
   Trash2,
   Loader2,
   AlertCircle,
+  Salad,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +31,7 @@ export default function VisualizarEstoque() {
   const [estoques, setEstoques] = useState([
     { id: "-1", tipo: "", icon: Package },
   ]);
+  const [sala, setSala] = useState();
   useEffect(() => {
     if (profissional) {
       const fetchData = async () => {
@@ -46,6 +48,7 @@ export default function VisualizarEstoque() {
         );
 
         const salaId = responseSala.data.result.id;
+        setSala(salaId);
 
         const responseEstoque = await axios.get(
           `http://localhost:3333/estoque/${salaId}`,
@@ -76,15 +79,15 @@ export default function VisualizarEstoque() {
           counter++; // Incrementa o contador
           return (
             estoqueM.vacinaEstoque?.flatMap((vacinaEstoqueO) => {
-              if (vacinaEstoqueO.vacinaLotes) {
+              if (vacinaEstoqueO.vacinaLote) {
                 return {
-                  id: vacinaEstoqueO.vacinaLotes.id.toString(),
-                  nome: vacinaEstoqueO.vacinaLotes.nome.toString(),
+                  id: vacinaEstoqueO.vacinaLote.id.toString(),
+                  nome: vacinaEstoqueO.vacinaLote.nome.toString(),
                   quantidade: vacinaEstoqueO.quantidade.toString(),
                   temperatura: temperaturas[counter].temperatura.toString(),
                   localizacao: estoqueM.id.toString(),
-                  lote: vacinaEstoqueO.vacinaLotes.codLote.toString(),
-                  validade: vacinaEstoqueO.vacinaLotes.validade.toString(),
+                  lote: vacinaEstoqueO.vacinaLote.codLote.toString(),
+                  validade: vacinaEstoqueO.vacinaLote.validade.toString(),
                 };
               } else {
                 return;
@@ -92,6 +95,7 @@ export default function VisualizarEstoque() {
             }) ?? []
           );
         });
+        console.log("DEBUGG OBJETO DE VACINAS", vacina);
         setEstoqueData(vacina);
       };
       fetchData();
@@ -290,13 +294,9 @@ export default function VisualizarEstoque() {
     setShowActionModal(false);
 
     if (action === "transferir") {
-      router.push("/vacina/estoque/transferir");
-      setTransferData({
-        estoqueDestino: "",
-        quantidade: selectedVacina.quantidade.toString(),
-        motivo: "",
-        observacoes: "",
-      });
+      router.push(
+        `/vacina/estoque/transferir?vacinaId=${selectedVacina.id}&estoqueId=${selectedVacina.localizacao}&salaId=${sala}&vacinaNome=${selectedVacina.nome}`,
+      );
     } else if (action === "descartar") {
       router.push("/vacina/estoque/descartar");
     }
