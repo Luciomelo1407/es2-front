@@ -1,10 +1,10 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Plus, CheckCircle, User, Building , AlertCircle} from 'lucide-react';
+import { ArrowLeft, Plus, CheckCircle, User, Building , AlertCircle, Loader2} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -25,7 +25,7 @@ const CriarSala = () => {
     janelaLavavel: false,
     tetoLavavel: false,
     pia: false,
-    ubsId: profissional.ubsId
+    ubsId: null
   });
 
   // Estado para controle de loading durante operação assíncrona
@@ -36,6 +36,15 @@ const CriarSala = () => {
 
   // Estado para gerenciamento de erros de validação por campo
   const [erros, setErros] = useState({});
+
+  useEffect(() => {
+    if (profissional && profissional.ubsId) {
+      setDadosSala(prev => ({
+        ...prev,
+        ubsId: profissional.ubsId
+      }));
+    }
+  }, [profissional]);
 
   /**
    * Atualiza campos do formulário mantendo imutabilidade do estado
