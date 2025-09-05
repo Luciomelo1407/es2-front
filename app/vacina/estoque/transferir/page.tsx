@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { parseCookies } from "nookies";
 import { Iestoque, IVacinaEstoque } from "@/types/responseTypes";
+
 export default function TransferirVacina() {
   const searchParams = useSearchParams();
   const vacinaId = searchParams.get("vacinaId");
@@ -17,6 +18,15 @@ export default function TransferirVacina() {
 
   const router = useRouter();
   const { profissional, loading, error, retry } = useAuth();
+
+  // Estado para controlar os valores dos campos do formulário
+  const [transferData, setTransferData] = useState({
+    estoqueDestino: "",
+    quantidade: "",
+  });
+
+  const [estoques, setEstoques] = useState([{}]);
+  const [vacinaEstoque, setVacinaEstoque] = useState<IVacinaEstoque | null>();
 
   useEffect(() => {
     if (profissional) {
@@ -59,7 +69,6 @@ export default function TransferirVacina() {
         );
 
         setVacinaEstoque(vacinaEstoqueResponse.data.result);
-
         setEstoques(estoqueFiltered);
       };
 
@@ -67,18 +76,25 @@ export default function TransferirVacina() {
     }
   }, [profissional]);
 
-  const [estoques, setEstoques] = useState([{}]);
-  const [vacinaEstoque, setVacinaEstoque] = useState<IVacinaEstoque | null>();
+  // Função para atualizar os valores do formulário
+  const handleInputChange = (field: string, value: string) => {
+    setTransferData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   async function handleTransfer() {
     try {
       const token = parseCookies().auth_token;
       const timeout = 10000;
+
+      // Agora você pode usar transferData.quantidade e transferData.estoqueDestino
       const response = await axios.put(
         `http://${process.env.NEXT_PUBLIC_BACKEND_URL}/vacina-estoque/${vacinaEstoque?.id}`,
         {
-          quantidade: null,
-          estoqueDestinoId: null,
+          quantidade: parseInt(transferData.quantidade), // Convertendo para número
+          estoqueDestinoId: parseInt(transferData.estoqueDestino), // Convertendo para número
         },
         {
           headers: {
@@ -87,8 +103,15 @@ export default function TransferirVacina() {
           timeout,
         },
       );
-    } catch (error) {
+
+      // Log dos valores para debug
+      console.log("Dados da transferência:", {
+        quantidade: transferData.quantidade,
+        estoqueDestino: transferData.estoqueDestino,
+        vacinaEstoqueId: vacinaEstoque?.id,
+      });
       router.push("/vacina/estoque");
+    } catch (error) {
       throw error;
     }
   }
@@ -190,13 +213,10 @@ export default function TransferirVacina() {
               Estoque de Destino *
             </label>
             <select
-              // value={transferData.estoqueDestino}
-              // onChange={(e) =>
-              //   setTransferData({
-              //     ...transferData,
-              //     estoqueDestino: e.target.value,
-              //   })
-              // }
+              value={transferData.estoqueDestino}
+              onChange={(e) =>
+                handleInputChange("estoqueDestino", e.target.value)
+              }
               className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="">Selecione o estoque destino</option>
@@ -216,26 +236,28 @@ export default function TransferirVacina() {
               type="number"
               min="1"
               max={vacinaEstoque?.quantidade}
+              value={transferData.quantidade}
+              onChange={(e) => handleInputChange("quantidade", e.target.value)}
               className="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="Ex: 50"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Máximo:
-              {vacinaEstoque?.quantidade}
-              unidades
+              Máximo: {vacinaEstoque?.quantidade} unidades
             </p>
           </div>
         </div>
 
         <div className="flex gap-3 mt-6">
           <button
-            // onClick={closeAllModals}
+            onClick={() => {
+              router.push("/vacina/estoque");
+            }}
             className="flex-1 p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
           >
             Cancelar
           </button>
           <button
-            // onClick={handleTransfer}
+            onClick={handleTransfer}
             className="flex-1 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
           >
             <ArrowRightLeft className="w-4 h-4" />

@@ -298,7 +298,9 @@ export default function VisualizarEstoque() {
         `/vacina/estoque/transferir?vacinaId=${selectedVacina.id}&estoqueId=${selectedVacina.localizacao}&salaId=${sala}&vacinaNome=${selectedVacina.nome}`,
       );
     } else if (action === "descartar") {
-      router.push("/vacina/estoque/descartar");
+      router.push(
+        `/vacina/estoque/descartar?vacinaId=${selectedVacina.id}&estoqueId=${selectedVacina.localizacao}&salaId=${sala}&vacinaNome=${selectedVacina.nome}`,
+      );
     }
   };
 
